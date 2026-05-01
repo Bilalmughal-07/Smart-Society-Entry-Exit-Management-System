@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.ResidentDashboardController"
+            styleClass="root">
+
+    <!-- Top Bar -->
+    <top>
+        <HBox styleClass="glass-panel-light" spacing="20" alignment="CENTER_LEFT">
+            <padding><Insets top="12" right="20" bottom="12" left="20"/></padding>
+            <Label text="🏠 Resident Dashboard" styleClass="section-label" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="welcomeLabel" text="Welcome" styleClass="label"/>
+            <Button text="🔔" fx:id="notifBadge" styleClass="button-secondary" onAction="#showNotifications"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="button-danger" prefHeight="32"/>
+        </HBox>
+    </top>
+
+    <!-- Main Content -->
+    <center>
+        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+
+            <!-- Tab 1: Create Approval -->
+            <Tab text="📋 Create Approval">
+                <ScrollPane fitToWidth="true">
+                    <VBox spacing="16" styleClass="glass-panel">
+                        <Label text="Pre-Approve a Visitor" styleClass="section-label"/>
+
+                        <HBox spacing="16">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Visitor Name *"/>
+                                <TextField fx:id="visitorNameField" promptText="Full name"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Contact"/>
+                                <TextField fx:id="visitorContactField" promptText="Phone number"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="16">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Category *"/>
+                                <ComboBox fx:id="categoryCombo" maxWidth="Infinity" promptText="Select category"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Purpose"/>
+                                <TextField fx:id="purposeField" promptText="Reason for visit"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="16">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Visit Date *"/>
+                                <DatePicker fx:id="visitDatePicker" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Duration (minutes)"/>
+                                <TextField fx:id="durationField" promptText="60" text="60"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="16">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Time From *"/>
+                                <TextField fx:id="timeStartField" promptText="HH:MM (e.g. 09:00)"/>
+                            </VBox>
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="Time To *"/>
+                                <TextField fx:id="timeEndField" promptText="HH:MM (e.g. 17:00)"/>
+                            </VBox>
+                        </HBox>
+
+                        <Label fx:id="approvalStatusLabel" text="" wrapText="true"/>
+
+                        <HBox spacing="12">
+                            <Button text="Create Approval" onAction="#handleCreateApproval" styleClass="button-success"/>
+                            <Button text="Clear" onAction="#handleClear" styleClass="button-secondary"/>
+                        </HBox>
+
+                        <!-- QR Code Display -->
+                        <VBox fx:id="qrDisplayBox" spacing="8" alignment="CENTER" visible="false" managed="false">
+                            <Separator/>
+                            <Label text="QR Code Generated" styleClass="success-label"/>
+                            <Label fx:id="qrCodeLabel" text="" style="-fx-font-size: 16px; -fx-text-fill: #22d3ee; -fx-font-family: monospace;"/>
+                        </VBox>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 2: My Approvals -->
+            <Tab text="📑 My Approvals">
+                <VBox spacing="12" styleClass="glass-panel">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Label text="Your Visitor Approvals" styleClass="section-label" HBox.hgrow="ALWAYS"/>
+                        <Button text="Refresh" onAction="#loadApprovals" styleClass="button-secondary"/>
+                    </HBox>
+
+                    <TableView fx:id="approvalsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colVisitor" text="Visitor" prefWidth="120"/>
+                            <TableColumn fx:id="colCategory" text="Category" prefWidth="80"/>
+                            <TableColumn fx:id="colDate" text="Date" prefWidth="90"/>
+                            <TableColumn fx:id="colTime" text="Time Window" prefWidth="110"/>
+                            <TableColumn fx:id="colQR" text="QR Code" prefWidth="140"/>
+                            <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="12">
+                        <Button text="Cancel Selected" onAction="#handleCancelApproval" styleClass="button-danger"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 3: Arrival Requests -->
+            <Tab text="🚪 Arrival Requests">
+                <VBox spacing="12" styleClass="glass-panel">
+                    <Label text="Pending Visitor Arrival Requests" styleClass="section-label"/>
+
+                    <TableView fx:id="arrivalRequestsTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colArrVisitor" text="Visitor" prefWidth="120"/>
+                            <TableColumn fx:id="colArrPurpose" text="Purpose" prefWidth="150"/>
+                            <TableColumn fx:id="colArrGuard" text="Guard" prefWidth="100"/>
+                            <TableColumn fx:id="colArrTime" text="Time" prefWidth="140"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="12">
+                        <Button text="✅ Approve" onAction="#handleApproveArrival" styleClass="button-success"/>
+                        <Button text="❌ Reject" onAction="#handleRejectArrival" styleClass="button-danger"/>
+                        <Button text="Refresh" onAction="#loadArrivalRequests" styleClass="button-secondary"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 4: Notifications -->
+            <Tab text="🔔 Notifications">
+                <VBox spacing="12" styleClass="glass-panel">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Label text="Your Notifications" styleClass="section-label" HBox.hgrow="ALWAYS"/>
+                        <Button text="Mark All Read" onAction="#markAllRead" styleClass="button-secondary"/>
+                        <Button text="Refresh" onAction="#loadNotifications" styleClass="button-secondary"/>
+                    </HBox>
+
+                    <ListView fx:id="notificationsList" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>

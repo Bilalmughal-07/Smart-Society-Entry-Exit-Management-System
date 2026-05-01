@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.LoginUIController"
+           prefWidth="500" prefHeight="600" styleClass="root">
+
+    <VBox alignment="CENTER" spacing="20" maxWidth="380">
+        <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+
+        <VBox styleClass="glass-panel" spacing="24" alignment="CENTER">
+            <!-- Title -->
+            <Label text="🏠 Smart Society" styleClass="title-label"/>
+            <Label text="Entry Management System" styleClass="subtitle-label"/>
+
+            <Separator/>
+
+            <!-- Login Form -->
+            <VBox spacing="14">
+                <Label text="Username" styleClass="label"/>
+                <TextField fx:id="usernameField" promptText="Enter your username"/>
+
+                <Label text="Password" styleClass="label"/>
+                <PasswordField fx:id="passwordField" promptText="Enter your password"/>
+            </VBox>
+
+            <!-- Status Label -->
+            <Label fx:id="statusLabel" text="" styleClass="error-label" wrapText="true"/>
+
+            <!-- Login Button -->
+            <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
+                    maxWidth="Infinity" prefHeight="44"/>
+
+            <!-- Info -->
+            <VBox alignment="CENTER" spacing="4">
+                <Label text="Default credentials:" style="-fx-text-fill: rgba(255,255,255,0.4); -fx-font-size: 11px;"/>
+                <Label text="admin / guard1 / resident1" style="-fx-text-fill: rgba(255,255,255,0.3); -fx-font-size: 11px;"/>
+                <Label text="Password: password123" style="-fx-text-fill: rgba(255,255,255,0.3); -fx-font-size: 11px;"/>
+            </VBox>
+        </VBox>
+    </VBox>
+</StackPane>

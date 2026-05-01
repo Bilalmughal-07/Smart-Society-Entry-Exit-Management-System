@@ -1,0 +1,373 @@
+/* ============================================================
+   Smart Society Entry Management System
+   Apple Glassmorphism Theme - JavaFX CSS
+   ============================================================ */
+
+/* === Root & Global === */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
+}
+
+/* === Glass Panel Effect === */
+.glass-panel {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 8);
+    -fx-padding: 24;
+}
+
+.glass-panel-light {
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+}
+
+/* === Labels === */
+.label {
+    -fx-text-fill: rgba(255, 255, 255, 0.9);
+}
+
+.title-label {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(100, 100, 255, 0.4), 10, 0, 0, 2);
+}
+
+.subtitle-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: rgba(255, 255, 255, 0.7);
+}
+
+.section-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #a78bfa;
+}
+
+.stat-value {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #22d3ee;
+}
+
+.stat-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: rgba(255, 255, 255, 0.5);
+    -fx-text-transform: uppercase;
+}
+
+.success-label {
+    -fx-text-fill: #34d399;
+    -fx-font-weight: bold;
+}
+
+.error-label {
+    -fx-text-fill: #f87171;
+    -fx-font-weight: bold;
+}
+
+.warning-label {
+    -fx-text-fill: #fbbf24;
+    -fx-font-weight: bold;
+}
+
+/* === Text Fields === */
+.text-field, .password-field {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.35);
+    -fx-padding: 10 14;
+    -fx-font-size: 14px;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #818cf8;
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-effect: dropshadow(gaussian, rgba(129, 140, 248, 0.3), 12, 0, 0, 0);
+}
+
+.text-area {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-text-fill: white;
+    -fx-control-inner-background: rgba(255, 255, 255, 0.06);
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+/* === Buttons === */
+.button {
+    -fx-background-color: linear-gradient(to right, #6366f1, #8b5cf6);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 10;
+    -fx-padding: 10 24;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.4), 8, 0, 0, 3);
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(to right, #818cf8, #a78bfa);
+    -fx-effect: dropshadow(gaussian, rgba(129, 140, 248, 0.6), 12, 0, 0, 4);
+}
+
+.button:pressed {
+    -fx-background-color: linear-gradient(to right, #4f46e5, #7c3aed);
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.3), 4, 0, 0, 1);
+}
+
+.button-success {
+    -fx-background-color: linear-gradient(to right, #059669, #10b981);
+    -fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.4), 8, 0, 0, 3);
+}
+
+.button-success:hover {
+    -fx-background-color: linear-gradient(to right, #10b981, #34d399);
+}
+
+.button-danger {
+    -fx-background-color: linear-gradient(to right, #dc2626, #ef4444);
+    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.4), 8, 0, 0, 3);
+}
+
+.button-danger:hover {
+    -fx-background-color: linear-gradient(to right, #ef4444, #f87171);
+}
+
+.button-warning {
+    -fx-background-color: linear-gradient(to right, #d97706, #f59e0b);
+    -fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.4), 8, 0, 0, 3);
+}
+
+.button-secondary {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-radius: 10;
+    -fx-effect: none;
+}
+
+.button-secondary:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* === ComboBox === */
+.combo-box {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 4 8;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #1e1b4b;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+    -fx-padding: 8 12;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: rgba(99, 102, 241, 0.3);
+}
+
+/* === DatePicker === */
+.date-picker {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-radius: 10;
+}
+
+.date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* === TabPane === */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: rgba(255, 255, 255, 0.04);
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 8 20;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.5);
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: rgba(99, 102, 241, 0.2);
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #a78bfa;
+}
+
+.tab-pane .tab:hover .tab-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
+}
+
+/* === TableView === */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-width: 0 1 1 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #a78bfa;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(255, 255, 255, 0.04);
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: rgba(255, 255, 255, 0.02);
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: rgba(99, 102, 241, 0.2);
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: rgba(99, 102, 241, 0.1);
+}
+
+.table-view .table-cell {
+    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-padding: 8 12;
+    -fx-font-size: 12px;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: rgba(255, 255, 255, 0.3);
+}
+
+/* === ScrollPane === */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-background-radius: 5;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* === Status Badges === */
+.badge-approved {
+    -fx-background-color: rgba(16, 185, 129, 0.2);
+    -fx-text-fill: #34d399;
+    -fx-background-radius: 6;
+    -fx-padding: 3 8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.badge-pending {
+    -fx-background-color: rgba(245, 158, 11, 0.2);
+    -fx-text-fill: #fbbf24;
+    -fx-background-radius: 6;
+    -fx-padding: 3 8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.badge-cancelled {
+    -fx-background-color: rgba(239, 68, 68, 0.2);
+    -fx-text-fill: #f87171;
+    -fx-background-radius: 6;
+    -fx-padding: 3 8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+/* === Notification Panel === */
+.notification-item {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-radius: 8;
+}
+
+.notification-item:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* === QR Code Display === */
+.qr-container {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 15, 0, 0, 5);
+}
+
+/* === Separator === */
+.separator .line {
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* === Tooltip === */
+.tooltip {
+    -fx-background-color: rgba(30, 27, 75, 0.95);
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-padding: 8 12;
+    -fx-font-size: 12px;
+}

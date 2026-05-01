@@ -1,0 +1,85 @@
+MASTER INSTRUCTION FILE: Smart Society Entry Management System (Finalized Project)
+
+Note to AI: You are reading this from instructions.txt located in the Documentation & Requirements directory. This file contains the complete, strict guidelines for the project we are building. Acknowledge these instructions and follow the step-by-step execution plan at the bottom.
+
+1. Project Overview & Role
+
+Act as a Senior Java Software Engineer mentoring a 3rd-semester Software Engineering student. We are building a full, finalized project for a "Smart Society Entry Management System" for a Software Design and Architecture (SDA) course. The system will run on Windows 11 (64-bit). This is NOT an MVP. It must be a complete, robust, and fully functional system.
+
+2. Strict Technical Constraints
+
+No Frameworks: The use of Spring, Spring Boot, Hibernate, or any other high-level framework is STRICTLY PROHIBITED.
+
+Architecture: Must strictly follow a 3-Tier Layered Architecture:
+
+UI Layer: JavaFX (FXML for layout, CSS for styling).
+
+Business Logic Layer: Pure Java SE.
+
+Database Layer: Data Access Objects (DAO) communicating via JDBC.
+
+Design Patterns: Must implement GoF patterns (Singleton for Database Connection, Factory for User Session creation) and GRASP principles (Controller, Information Expert).
+
+Database: Microsoft SQL Server using standard JDBC (mssql-jdbc).
+
+Hardware Integration: We are simulating a QR scanner using the laptop webcam. You must use the Sarxos Webcam API and ZXing library for capturing and decoding QR strings.
+
+UI Theme: The JavaFX UI must utilize a modern, premium "Apple Glassmorphism" theme (transparent backgrounds, blur effects via JavaFX BoxBlur/GaussianBlur, rounded corners via CSS).
+
+3. Reference Documentation
+
+The exact logic, function calls, and object interactions MUST be derived from the Sequence Diagrams provided in the same directory:
+
+sds.drawio (Main success scenarios)
+
+sds_alt.drawio (Alternate scenarios/Extensions)
+
+The system must strictly adhere to the objects and messages defined in these files to ensure consistency between design artifacts and implementation.
+
+4. Project Scope (Use Cases to Implement)
+
+Do not implement any features outside of this list, but ensure every listed feature works flawlessly. All logic must map to the provided SDs.
+
+Authentication:
+
+UC-00: System Login (Admin, Guard, Resident) - Utilizes Factory Pattern.
+
+Resident Operations:
+
+UC-01: Create Visitor Pre-Approval (Generates unique QR code string and saves to DB).
+
+UC-04: Approve Visitor on Arrival (Real-time guard-to-resident request).
+
+UC-10: Register Resident Entry (Scans resident QR via webcam, validates, updates status).
+
+UC-11: Register Resident Exit (Logical completion for resident state management).
+
+Gate Security:
+
+UC-07: Verify Visitor Approval Status (Engine checking constraints/time windows).
+
+UC-08: Register Visitor Entry (Logs timestamp, updates active occupancy).
+
+UC-09: Register Visitor Exit (Logs exit timestamp, removes from active occupancy).
+
+Administration:
+
+UC-12: Define Visitor Access Rules (CRUD for society hours/limits).
+
+UC-13: Monitor Real-Time Society Occupancy (Pulls active DB records for dashboard).
+
+UC-14: Review Violations and Take Action (Detects overstays based on rules from UC-12 and logs from UC-08/09).
+
+5. Execution Plan
+
+Initial Processing Phase: Before writing any code, you must process all documents and files located in the Documentation & Requirements directory. This includes this instructions.txt file, sds.drawio, sds_alt.drawio, project_statement.txt, and rubric.pdf. The generated project MUST strictly adhere to the evaluation criteria outlined in the rubric and follow all instructions provided in this prompt.
+
+Final Delivery Requirement: After processing the documents, give me one completed, fully tested, executable, and perfectly working project without any errors. I want a full project that is finalized, NOT a broken or incomplete "MVP". You must do thorough testing on your own to prevent any mishaps. Your response must include:
+
+Project Structure: A standard folder/package tree demonstrating the 3-tier architecture. The project structure must be universal (e.g., standard src and lib directories) so it can run seamlessly across all popular Java IDEs like IntelliJ IDEA, Eclipse, VS Code, and Google Antigravity.
+
+Database Script: The complete MS SQL Server .sql script to create all necessary tables, relationships, and foreign keys for the above use cases.
+
+Complete Source Code: All Java files, FXML layouts, and CSS files required to build and run the complete project successfully.
+
+README File: A comprehensive README.md file explaining the complete setup process, including database configuration, dependency management (JDBC, Sarxos, ZXing), and exact instructions on how to compile and run the finalized project across various IDEs.
