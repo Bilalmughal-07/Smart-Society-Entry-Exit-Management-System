@@ -23,6 +23,13 @@ import javafx.scene.image.Image;
 import javafx.concurrent.Task;
 import javafx.application.Platform;
 import javafx.stage.Stage;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Screen;
+import javafx.geometry.Rectangle2D;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
 import java.util.List;
 import java.awt.image.BufferedImage;
 
@@ -35,8 +42,11 @@ public class GuardDashboardController {
     @FXML private Button registerEntryBtn, reportViolationBtn;
 
     @FXML private VBox cameraUiBox;
-    @FXML private HBox manualInputBox;
+    @FXML private StackPane manualInputBox;
     @FXML private ImageView cameraFeedView;
+    @FXML private Rectangle cameraFrame;
+    @FXML private StackPane cameraLoadingLayer;
+    @FXML private ProgressIndicator cameraLoadingSpinner;
     @FXML private Label instructionLabel, timerLabel, warningLabel;
     @FXML private Button retryBtn;
 
@@ -64,6 +74,9 @@ public class GuardDashboardController {
     private int verifiedApprovalId = -1;
     private String verifiedQrData = null;
     private String verifiedQrType = null;
+
+    private double cameraMaxW = 460;
+    private double cameraMaxH = 340;
 
     public static final class PreloadData {
         private final List<User> residents;
@@ -131,6 +144,19 @@ public class GuardDashboardController {
         Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, registerEntryBtn, reportViolationBtn, retryBtn };
         for (Button button : animatedButtons) if (button != null) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
+
+        cameraFrame.widthProperty().bind(cameraFeedView.fitWidthProperty());
+        cameraFrame.heightProperty().bind(cameraFeedView.fitHeightProperty());
+        cameraLoadingLayer.prefWidthProperty().bind(cameraFrame.widthProperty());
+        cameraLoadingLayer.prefHeightProperty().bind(cameraFrame.heightProperty());
+        cameraLoadingLayer.minWidthProperty().bind(cameraFrame.widthProperty());
+        cameraLoadingLayer.minHeightProperty().bind(cameraFrame.heightProperty());
+        cameraLoadingLayer.maxWidthProperty().bind(cameraFrame.widthProperty());
+        cameraLoadingLayer.maxHeightProperty().bind(cameraFrame.heightProperty());
+        applyCameraSizingForScreen();
+        manualInputBox.maxWidthProperty().bind(section0.widthProperty().multiply(0.35));
+        manualInputBox.prefWidthProperty().bind(section0.widthProperty().multiply(0.35));
+        showCameraLoading(false);
     }
 
     private void applyPreloadedData(PreloadData preload) {
@@ -294,12 +320,15 @@ public class GuardDashboardController {
     }
 
     private void startWebcamScan() {
-        cameraUiBox.setVisible(true); cameraUiBox.setManaged(true);
-        manualInputBox.setVisible(false); manualInputBox.setManaged(false);
+        if (manualInputBox.isVisible()) {
+            animateSwap(manualInputBox, cameraUiBox);
+        }
         warningLabel.setVisible(false); warningLabel.setManaged(false);
         retryBtn.setVisible(false); retryBtn.setManaged(false);
         timerLabel.setText("15s");
         instructionLabel.setText("Please hold up QR");
+        showCameraLoading(true);
+        cameraFeedView.setImage(null);
 
         if (webcamTask != null && webcamTask.isRunning()) webcamTask.cancel();
 
@@ -318,7 +347,11 @@ public class GuardDashboardController {
                     if (frame != null) {
                         try {
                             Image fxImage = javafx.embed.swing.SwingFXUtils.toFXImage(frame, null);
-                            Platform.runLater(() -> cameraFeedView.setImage(fxImage));
+                            Platform.runLater(() -> {
+                                updateCameraViewSize(fxImage);
+                                cameraFeedView.setImage(fxImage);
+                                showCameraLoading(false);
+                            });
                         } catch (Exception ignored) {}
                         String result = qrService.decodeImage(frame);
                         if (result != null) return result;
@@ -340,8 +373,8 @@ public class GuardDashboardController {
                 showWarning();
             }
         });
-        webcamTask.setOnCancelled(e -> { QRCodeService.getInstance().closeWebcam(); cameraFeedView.setImage(null); });
-        webcamTask.setOnFailed(e -> { QRCodeService.getInstance().closeWebcam(); cameraFeedView.setImage(null); });
+        webcamTask.setOnCancelled(e -> { QRCodeService.getInstance().closeWebcam(); cameraFeedView.setImage(null); showCameraLoading(false); });
+        webcamTask.setOnFailed(e -> { QRCodeService.getInstance().closeWebcam(); cameraFeedView.setImage(null); showCameraLoading(false); });
 
         Thread thread = new Thread(webcamTask);
         thread.setDaemon(true);
@@ -353,16 +386,79 @@ public class GuardDashboardController {
         timerLabel.setText("0s");
         warningLabel.setVisible(true); warningLabel.setManaged(true);
         retryBtn.setVisible(true); retryBtn.setManaged(true);
+        showCameraLoading(false);
         javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(
             javafx.util.Duration.millis(400), warningLabel);
         ft.setFromValue(0.0); ft.setToValue(1.0); ft.play();
     }
 
+    private void showCameraLoading(boolean show) {
+        cameraLoadingLayer.setVisible(show);
+        cameraLoadingLayer.setManaged(show);
+        cameraLoadingLayer.setOpacity(show ? 1.0 : 0.0);
+    }
+
+    private void animateSwap(javafx.scene.Node from, javafx.scene.Node to) {
+        if (from == null || to == null) return;
+        if (!from.isVisible() && to.isVisible()) return;
+
+        FadeTransition outFade = new FadeTransition(Duration.millis(180), from);
+        outFade.setFromValue(1.0);
+        outFade.setToValue(0.0);
+        TranslateTransition outSlide = new TranslateTransition(Duration.millis(180), from);
+        outSlide.setFromY(0);
+        outSlide.setToY(-8);
+
+        ParallelTransition out = new ParallelTransition(outFade, outSlide);
+        out.setOnFinished(e -> {
+            from.setVisible(false);
+            from.setManaged(false);
+            from.setOpacity(1.0);
+            from.setTranslateY(0);
+
+            to.setOpacity(0.0);
+            to.setTranslateY(8);
+            to.setVisible(true);
+            to.setManaged(true);
+
+            FadeTransition inFade = new FadeTransition(Duration.millis(220), to);
+            inFade.setFromValue(0.0);
+            inFade.setToValue(1.0);
+            TranslateTransition inSlide = new TranslateTransition(Duration.millis(220), to);
+            inSlide.setFromY(8);
+            inSlide.setToY(0);
+            new ParallelTransition(inFade, inSlide).play();
+        });
+        out.play();
+    }
+
+    private void updateCameraViewSize(Image image) {
+        if (image == null) return;
+        double imgW = image.getWidth();
+        double imgH = image.getHeight();
+        if (imgW <= 0 || imgH <= 0) return;
+
+        double scale = Math.min(cameraMaxW / imgW, cameraMaxH / imgH);
+        cameraFeedView.setFitWidth(imgW * scale);
+        cameraFeedView.setFitHeight(imgH * scale);
+    }
+
+    private void applyCameraSizingForScreen() {
+        Rectangle2D bounds = Screen.getPrimary().getBounds();
+        double base = Math.min(bounds.getWidth(), bounds.getHeight());
+        cameraMaxW = Math.max(520, base * 0.42);
+        cameraMaxH = Math.max(390, base * 0.32);
+        cameraFeedView.setFitWidth(cameraMaxW);
+        cameraFeedView.setFitHeight(cameraMaxH);
+    }
+
     @FXML
     private void handleEnterManually() {
         if (webcamTask != null && webcamTask.isRunning()) webcamTask.cancel();
-        cameraUiBox.setVisible(false); cameraUiBox.setManaged(false);
-        manualInputBox.setVisible(true); manualInputBox.setManaged(true);
+        showCameraLoading(false);
+        if (cameraUiBox.isVisible()) {
+            animateSwap(cameraUiBox, manualInputBox);
+        }
     }
 
     @FXML private void handleRetryScan() { startWebcamScan(); }

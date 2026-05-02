@@ -64,34 +64,46 @@
         <StackPane styleClass="content-area">
 
             <!-- Section 0: Scan QR Code -->
-            <VBox fx:id="section0" spacing="16" alignment="TOP_CENTER" visible="true" managed="true"
+                        <VBox fx:id="section0" spacing="16" alignment="CENTER" visible="true" managed="true"
                   maxWidth="Infinity" maxHeight="Infinity">
                 <Label text="Verify Visitor / Resident QR Code" styleClass="section-label"/>
 
-                <!-- Camera UI -->
-                <VBox fx:id="cameraUiBox" spacing="10" alignment="CENTER" visible="true" managed="true">
-                    <Label fx:id="instructionLabel" text="Please hold up QR"
-                           style="-fx-font-size: 14px; -fx-text-fill: rgba(255,255,255,0.55);"/>
-                    <Label fx:id="timerLabel" text="15s"
-                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #FF9F0A;"/>
-                    <StackPane style="-fx-border-color: rgba(10,132,255,0.6); -fx-border-width: 2; -fx-border-radius: 10;">
-                        <ImageView fx:id="cameraFeedView" fitWidth="320" fitHeight="240" preserveRatio="true"/>
-                        <javafx.scene.shape.Rectangle width="200" height="200" fill="transparent"
-                                                      stroke="#30D158" strokeWidth="2.5" strokeType="INSIDE"/>
-                    </StackPane>
-                    <Label fx:id="warningLabel" text="QR Not Detected" styleClass="error-label"
-                           visible="false" managed="false"/>
-                    <Button fx:id="retryBtn" text="Retry Scan" onAction="#handleRetryScan"
-                            styleClass="button-warning" visible="false" managed="false"/>
-                    <Button text="Enter Manually" onAction="#handleEnterManually" styleClass="button-secondary"/>
-                </VBox>
+                                <Region VBox.vgrow="ALWAYS"/>
+
+                  <!-- Camera UI -->
+                        <VBox fx:id="cameraUiBox" spacing="10" alignment="CENTER" visible="true" managed="true"
+                            styleClass="scan-shell" maxWidth="620">
+                      <Label fx:id="instructionLabel" text="Please hold up QR"
+                          style="-fx-font-size: 14px; -fx-text-fill: rgba(255,255,255,0.55);"/>
+                      <Label fx:id="timerLabel" text="15s"
+                          style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #FF9F0A;"/>
+                                            <StackPane alignment="CENTER">
+                                                <ImageView fx:id="cameraFeedView" fitWidth="480" fitHeight="360" preserveRatio="true"/>
+                                                <Rectangle fx:id="cameraFrame" width="480" height="360" fill="transparent"
+                                                        stroke="#0A84FF" strokeWidth="2" strokeType="INSIDE"/>
+                                                <StackPane fx:id="cameraLoadingLayer" visible="false" managed="false"
+                                                                     styleClass="camera-loading">
+                                                        <ProgressIndicator fx:id="cameraLoadingSpinner" prefWidth="48" prefHeight="48"/>
+                                                </StackPane>
+                                            </StackPane>
+                      <Label fx:id="warningLabel" text="QR Not Detected" styleClass="error-label"
+                          visible="false" managed="false"/>
+                      <Button fx:id="retryBtn" text="Retry Scan" onAction="#handleRetryScan"
+                        styleClass="button-warning" visible="false" managed="false"/>
+                      <Button text="Enter Manually" onAction="#handleEnterManually" styleClass="button-secondary"/>
+                  </VBox>
 
                 <!-- Manual Input -->
-                <HBox fx:id="manualInputBox" spacing="10" alignment="CENTER_LEFT" visible="false" managed="false">
-                    <TextField fx:id="qrInputField" promptText="Enter or scan QR code data" HBox.hgrow="ALWAYS"/>
-                    <Button text="Verify" onAction="#handleVerifyQR" styleClass="button"/>
-                    <Button text="Scan QR" onAction="#handleStartWebcam" styleClass="button-secondary"/>
-                </HBox>
+                <StackPane fx:id="manualInputBox" visible="false" managed="false" styleClass="scan-shell">
+                    <VBox spacing="10" alignment="CENTER">
+                        <HBox spacing="10" alignment="CENTER">
+                            <TextField fx:id="qrInputField" promptText="Enter or scan QR code data"
+                                       prefWidth="320" maxWidth="320"/>
+                            <Button text="Verify" onAction="#handleVerifyQR" styleClass="button"/>
+                        </HBox>
+                        <Button text="Scan QR" onAction="#handleStartWebcam" styleClass="button-scan"/>
+                    </VBox>
+                </StackPane>
 
                 <Label fx:id="scanResultLabel" text="" wrapText="true"/>
 
@@ -110,6 +122,8 @@
                                 visible="false" managed="false"/>
                     </HBox>
                 </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
             </VBox>
 
             <!-- Section 1: Entry / Exit -->
