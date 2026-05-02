@@ -284,6 +284,26 @@
     -fx-border-radius: 24;
 }
 
+.scan-panel {
+    -fx-padding: 18 20;
+    -fx-spacing: 10;
+}
+
+.scan-shell {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.14), rgba(255,255,255,0.055));
+    -fx-background-radius: 24;
+    -fx-border-color: rgba(255,255,255,0.22);
+    -fx-border-radius: 24;
+    -fx-border-width: 1;
+    -fx-padding: 12 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.26), 24, 0.22, 0, 10);
+}
+
+.camera-loading {
+    -fx-background-color: rgba(10, 14, 18, 0.55);
+    -fx-background-radius: 12;
+}
+
 .label {
     -fx-text-fill: rgba(255,255,255,0.88);
 }
@@ -455,6 +475,22 @@
         linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.22), rgba(255,255,255,0.02)),
         linear-gradient(from 0% 0% to 100% 100%, rgba(242,204,111,0.84), rgba(207,137,55,0.72));
     -fx-effect: dropshadow(gaussian, rgba(225, 167, 71, 0.22), 16, 0.20, 0, 7);
+}
+
+.button-scan {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.22), rgba(255,255,255,0.04)),
+        linear-gradient(from 0% 0% to 100% 100%, #6db8ff, #2b6bdc);
+    -fx-border-color: rgba(200, 225, 255, 0.40);
+    -fx-text-fill: #eef6ff;
+    -fx-font-weight: 800;
+}
+
+.button-scan:hover {
+    -fx-background-color:
+        linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.28), rgba(255,255,255,0.06)),
+        linear-gradient(from 0% 0% to 100% 100%, #7cc4ff, #3577e8);
+    -fx-effect: dropshadow(gaussian, rgba(78, 140, 255, 0.28), 18, 0.24, 0, 8);
 }
 
 .button-secondary {
