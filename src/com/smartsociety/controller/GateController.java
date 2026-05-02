@@ -195,7 +195,7 @@ public class GateController {
         Violation v1 = new Violation();
         v1.setLogId(logId);
         v1.setViolationType(Violation.ViolationType.UNAUTHORIZED);
-        v1.setDescription("QR sharing violation. Visitor: " + a.getVisitorName() + " (Resident: " + a.getResidentName() + ")");
+        v1.setDescription("Visitor attempted to share QR code for multiple entries. Original approval ID: " + approvalId);
         vDao.createViolation(v1);
 
         return true;
