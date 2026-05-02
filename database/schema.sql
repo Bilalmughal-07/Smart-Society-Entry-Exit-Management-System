@@ -168,14 +168,22 @@ GO
 -- ============================================================
 -- Indexes for performance
 -- ============================================================
-CREATE NONCLUSTERED INDEX IX_Approvals_ResidentID    ON Approvals(resident_id);
-CREATE NONCLUSTERED INDEX IX_Approvals_Status        ON Approvals(status);
-CREATE NONCLUSTERED INDEX IX_Approvals_VisitDate     ON Approvals(visit_date);
-CREATE NONCLUSTERED INDEX IX_EntryLogs_Status        ON EntryLogs(status);
-CREATE NONCLUSTERED INDEX IX_EntryLogs_PersonType    ON EntryLogs(person_type, person_id);
-CREATE NONCLUSTERED INDEX IX_Violations_Status       ON Violations(status);
-CREATE NONCLUSTERED INDEX IX_Notifications_Recipient ON Notifications(recipient_id, is_read);
-CREATE NONCLUSTERED INDEX IX_ArrivalReq_Resident     ON ArrivalRequests(resident_id, status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Approvals_ResidentID' AND object_id = OBJECT_ID('Approvals'))
+    CREATE NONCLUSTERED INDEX IX_Approvals_ResidentID ON Approvals(resident_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Approvals_Status' AND object_id = OBJECT_ID('Approvals'))
+    CREATE NONCLUSTERED INDEX IX_Approvals_Status ON Approvals(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Approvals_VisitDate' AND object_id = OBJECT_ID('Approvals'))
+    CREATE NONCLUSTERED INDEX IX_Approvals_VisitDate ON Approvals(visit_date);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_EntryLogs_Status' AND object_id = OBJECT_ID('EntryLogs'))
+    CREATE NONCLUSTERED INDEX IX_EntryLogs_Status ON EntryLogs(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_EntryLogs_PersonType' AND object_id = OBJECT_ID('EntryLogs'))
+    CREATE NONCLUSTERED INDEX IX_EntryLogs_PersonType ON EntryLogs(person_type, person_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Violations_Status' AND object_id = OBJECT_ID('Violations'))
+    CREATE NONCLUSTERED INDEX IX_Violations_Status ON Violations(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Notifications_Recipient' AND object_id = OBJECT_ID('Notifications'))
+    CREATE NONCLUSTERED INDEX IX_Notifications_Recipient ON Notifications(recipient_id, is_read);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_ArrivalReq_Resident' AND object_id = OBJECT_ID('ArrivalRequests'))
+    CREATE NONCLUSTERED INDEX IX_ArrivalReq_Resident ON ArrivalRequests(resident_id, status);
 GO
 
 -- ============================================================

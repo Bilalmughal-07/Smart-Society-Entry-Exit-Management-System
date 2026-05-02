@@ -81,10 +81,11 @@ public class NotificationService {
      * Notifies guards and residents about violations.
      * As per SD-14: notifyGuardsAndResident(violationID, action)
      */
-    public boolean notifyAboutViolation(int residentId, String violationInfo, String action) {
+    public boolean notifyAboutViolation(Integer residentId, String violationInfo, String action) {
         String message = "Violation Action: " + action + " - " + violationInfo;
-        // Notify the resident
-        sendNotification(residentId, message, "VIOLATION");
+        if (residentId != null && residentId > 0) {
+            sendNotification(residentId, message, "VIOLATION");
+        }
         // Notify all guards
         notifyAllGuards("Violation reported: " + violationInfo + " | Action: " + action);
         return true;

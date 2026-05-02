@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
@@ -21,33 +22,33 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
-/**
- * UI Controller for Resident Dashboard.
- */
 public class ResidentDashboardController {
 
-    @FXML private Label welcomeLabel, approvalStatusLabel, qrCodeLabel;
-    @FXML private TextField visitorNameField, visitorContactField, purposeField, durationField, timeHourField, timeMinField, timeEndField;
+    @FXML private Label welcomeLabel, avatarLabel, approvalStatusLabel, qrCodeLabel;
+    @FXML private TextField visitorNameField, visitorContactField, purposeField, durationField,
+            timeHourField, timeMinField, timeEndField;
     @FXML private ComboBox<String> categoryCombo;
     @FXML private DatePicker visitDatePicker;
     @FXML private VBox qrDisplayBox;
     @FXML private ImageView qrImageView;
     @FXML private Button notifBadge;
-    @FXML private TabPane tabPane;
 
-    // Approvals table
     @FXML private TableView<Approval> approvalsTable;
     @FXML private TableColumn<Approval, String> colVisitor, colCategory, colDate, colTime, colQR, colStatus;
 
-    // Arrival requests table
     @FXML private TableView<String[]> arrivalRequestsTable;
     @FXML private TableColumn<String[], String> colArrVisitor, colArrPurpose, colArrGuard, colArrTime;
 
-    // Access Rules table
     @FXML private TableView<AccessRule> rulesTable;
     @FXML private TableColumn<AccessRule, String> colRuleName, colRuleCat, colRuleTime, colRuleDuration, colRuleVisitors;
 
     @FXML private ListView<String> notificationsList;
+
+    // Sidebar nav — section0 is a ScrollPane, rest are VBox
+    @FXML private ScrollPane section0;
+    @FXML private VBox section1, section2, section3, section4;
+    @FXML private Button navBtn0, navBtn1, navBtn2, navBtn3, navBtn4;
+    private int currentSection = 0;
 
     private final ApprovalController approvalCtrl = new ApprovalController();
     private final NotificationService notifService = NotificationService.getInstance();
@@ -57,13 +58,13 @@ public class ResidentDashboardController {
     public void initialize() {
         session = LoginController.getCurrentSession();
         if (session != null) {
-            welcomeLabel.setText("Welcome, " + session.getFullName() + " | " + session.getUnitNumber());
+            welcomeLabel.setText(session.getFullName() + "\n" + session.getUnitNumber());
+            avatarLabel.setText(String.valueOf(session.getFullName().charAt(0)).toUpperCase());
         }
 
         categoryCombo.setItems(FXCollections.observableArrayList("Guest", "Delivery", "Service", "Contractor", "Other"));
         visitDatePicker.setValue(LocalDate.now());
 
-        // Setup approvals table columns
         colVisitor.setCellValueFactory(new PropertyValueFactory<>("visitorName"));
         colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
         colDate.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getVisitDate().toString()));
@@ -71,13 +72,11 @@ public class ResidentDashboardController {
         colQR.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getQrCode() != null ? cd.getValue().getQrCode() : "—"));
         colStatus.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getStatusString()));
 
-        // Setup arrival requests table
         colArrVisitor.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 1 ? cd.getValue()[1] : ""));
         colArrPurpose.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 2 ? cd.getValue()[2] : ""));
         colArrGuard.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 3 ? cd.getValue()[3] : ""));
         colArrTime.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 4 ? cd.getValue()[4] : ""));
 
-        // Setup rules table
         colRuleName.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getRuleName()));
         colRuleCat.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getCategory()));
         colRuleTime.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getTimeWindow()));
@@ -89,47 +88,70 @@ public class ResidentDashboardController {
         loadNotifications();
         loadRules();
 
-        // Add listeners for auto-calculating end time
         javafx.beans.value.ChangeListener<String> timeCalcListener = (obs, oldVal, newVal) -> updateEndTime();
         timeHourField.textProperty().addListener(timeCalcListener);
         timeMinField.textProperty().addListener(timeCalcListener);
         durationField.textProperty().addListener(timeCalcListener);
 
-        // Auto-pad hours and minutes on focus loss
         timeHourField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
             if (!isNowFocused && !timeHourField.getText().isEmpty()) {
-                try {
-                    int h = Integer.parseInt(timeHourField.getText().trim());
-                    timeHourField.setText(String.format("%02d", h));
-                } catch (NumberFormatException ignored) {}
+                try { timeHourField.setText(String.format("%02d", Integer.parseInt(timeHourField.getText().trim()))); }
+                catch (NumberFormatException ignored) {}
             }
         });
         timeMinField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
             if (!isNowFocused && !timeMinField.getText().isEmpty()) {
-                try {
-                    int m = Integer.parseInt(timeMinField.getText().trim());
-                    timeMinField.setText(String.format("%02d", m));
-                } catch (NumberFormatException ignored) {}
+                try { timeMinField.setText(String.format("%02d", Integer.parseInt(timeMinField.getText().trim()))); }
+                catch (NumberFormatException ignored) {}
             }
         });
+
+        AnimationUtils.introAnimation(section0);
     }
+
+    // === Sidebar Navigation ===
+
+    @FXML private void showSection0() { showSection(0); }
+    @FXML private void showSection1() { showSection(1); }
+    @FXML private void showSection2() { showSection(2); }
+    @FXML private void showSection3() { showSection(3); }
+    @FXML private void showSection4() { showSection(4); }
+
+    private void showSection(int index) {
+        if (index == currentSection) return;
+        Node[] sections = { section0, section1, section2, section3, section4 };
+        AnimationUtils.switchSection(sections[currentSection], sections[index],
+                index > currentSection ? 1 : -1);
+        activateNav(index);
+        currentSection = index;
+    }
+
+    private void activateNav(int index) {
+        Button[] btns = { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4 };
+        for (int i = 0; i < btns.length; i++) {
+            btns[i].getStyleClass().remove("sidebar-item-active");
+            if (i == index) btns[i].getStyleClass().add("sidebar-item-active");
+        }
+    }
+
+    // === Time calculation ===
 
     private void updateEndTime() {
         try {
-            if (timeHourField.getText().trim().isEmpty() || timeMinField.getText().trim().isEmpty() || durationField.getText().trim().isEmpty()) {
-                timeEndField.setText("--:--");
-                return;
+            if (timeHourField.getText().trim().isEmpty() || timeMinField.getText().trim().isEmpty()
+                    || durationField.getText().trim().isEmpty()) {
+                timeEndField.setText("--:--"); return;
             }
             int h = Integer.parseInt(timeHourField.getText().trim());
             int m = Integer.parseInt(timeMinField.getText().trim());
             int dur = Integer.parseInt(durationField.getText().trim());
-            LocalTime start = LocalTime.of(h, m);
-            LocalTime end = start.plusMinutes(dur);
-            timeEndField.setText(end.toString());
+            timeEndField.setText(LocalTime.of(h, m).plusMinutes(dur).toString());
         } catch (Exception e) {
             timeEndField.setText("--:--");
         }
     }
+
+    // === Approval Creation ===
 
     @FXML
     private void handleCreateApproval() {
@@ -139,13 +161,13 @@ public class ResidentDashboardController {
             String category = categoryCombo.getValue();
             String purpose = purposeField.getText().trim();
             LocalDate date = visitDatePicker.getValue();
-            
+
             String hourStr = timeHourField.getText().trim();
             String minStr = timeMinField.getText().trim();
             if (hourStr.isEmpty() || minStr.isEmpty()) {
                 showStatus("Please enter arrival time", "error-label"); return;
             }
-            
+
             int h = Integer.parseInt(hourStr);
             int m = Integer.parseInt(minStr);
             LocalTime start = LocalTime.of(h, m);
@@ -153,27 +175,26 @@ public class ResidentDashboardController {
             LocalTime end = start.plusMinutes(duration);
 
             if (name.isEmpty() || category == null) {
-                showStatus("Please fill all required fields (*)", "error-label");
-                return;
+                showStatus("Please fill all required fields (*)", "error-label"); return;
             }
 
             Approval approval = approvalCtrl.createApproval(session.getUserId(), name, contact, category, purpose, date, start, end, duration);
             if (approval != null) {
-                showStatus("✅ Approval created successfully!", "success-label");
+                showStatus("Approval created successfully!", "success-label");
                 qrCodeLabel.setText(approval.getQrCode());
                 javafx.scene.image.Image qrImg = com.smartsociety.service.QRCodeService.getInstance().generateQRImage(approval.getQrCode());
                 if (qrImg != null) qrImageView.setImage(qrImg);
-                qrDisplayBox.setVisible(true);
-                qrDisplayBox.setManaged(true);
+                qrDisplayBox.setVisible(true); qrDisplayBox.setManaged(true);
+                AnimationUtils.fadeIn(qrDisplayBox, 300);
                 loadApprovals();
-                clearInputs(); // Only clear inputs, leave QR visible
+                clearInputs();
             } else {
-                showStatus("❌ Failed to create approval.", "error-label");
+                showStatus("Failed to create approval.", "error-label");
             }
         } catch (NumberFormatException e) {
             showStatus("Invalid duration. Enter a number.", "error-label");
         } catch (IllegalArgumentException e) {
-            showStatus("❌ " + e.getMessage(), "error-label");
+            showStatus(e.getMessage(), "error-label");
         } catch (DateTimeParseException e) {
             showStatus("Invalid time format. Use HH:MM (e.g. 09:00)", "error-label");
         }
@@ -184,7 +205,8 @@ public class ResidentDashboardController {
         Approval selected = approvalsTable.getSelectionModel().getSelectedItem();
         if (selected == null) { showStatus("Select an approval to cancel.", "warning-label"); return; }
         boolean cancelled = approvalCtrl.cancelApproval(selected.getApprovalId());
-        showStatus(cancelled ? "Approval cancelled." : "Cannot cancel this approval.", cancelled ? "success-label" : "error-label");
+        showStatus(cancelled ? "Approval cancelled." : "Cannot cancel this approval.",
+                cancelled ? "success-label" : "error-label");
         loadApprovals();
     }
 
@@ -198,6 +220,8 @@ public class ResidentDashboardController {
         durationField.setText("60"); timeHourField.clear(); timeMinField.clear(); timeEndField.clear();
         categoryCombo.getSelectionModel().clearSelection();
     }
+
+    // === Arrival Requests ===
 
     @FXML
     private void handleApproveArrival() {
@@ -215,6 +239,8 @@ public class ResidentDashboardController {
         loadArrivalRequests();
     }
 
+    // === Data Loading ===
+
     @FXML
     public void loadApprovals() {
         List<Approval> list = approvalCtrl.getApprovalsByResident(session.getUserId());
@@ -224,8 +250,7 @@ public class ResidentDashboardController {
     @FXML
     public void loadArrivalRequests() {
         String[][] requests = approvalCtrl.getPendingArrivalRequests(session.getUserId());
-        ObservableList<String[]> data = FXCollections.observableArrayList(requests);
-        arrivalRequestsTable.setItems(data);
+        arrivalRequestsTable.setItems(FXCollections.observableArrayList(requests));
     }
 
     @FXML
@@ -237,7 +262,7 @@ public class ResidentDashboardController {
         notifBadge.setText("🔔 " + notifs.size());
     }
 
-    @FXML private void showNotifications() { tabPane.getSelectionModel().select(3); }
+    @FXML private void showNotifications() { showSection(3); }
     @FXML private void markAllRead() { notifService.markAllAsRead(session.getUserId()); loadNotifications(); }
 
     @FXML
@@ -248,16 +273,18 @@ public class ResidentDashboardController {
 
     @FXML
     private void handleLogout() {
-        try {
-            new LoginController().logout();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-            Scene scene = new Scene(loader.load(), 500, 600);
-            scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
-            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
-            stage.setTitle("Smart Society - Login");
-            stage.setScene(scene);
-            stage.centerOnScreen();
-        } catch (Exception e) { e.printStackTrace(); }
+        Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+        AnimationUtils.sceneTransition(welcomeLabel.getScene().getRoot(), () -> {
+            try {
+                new LoginController().logout();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+                Scene scene = new Scene(loader.load(), 500, 600);
+                scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
+                stage.setTitle("Smart Society - Login");
+                stage.setScene(scene);
+                stage.centerOnScreen();
+            } catch (Exception e) { e.printStackTrace(); }
+        });
     }
 
     private void showStatus(String msg, String styleClass) {

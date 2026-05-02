@@ -51,7 +51,7 @@ public class GateController {
 
         EntryLog log = new EntryLog();
         log.setPersonType(EntryLog.PersonType.VISITOR);
-        log.setPersonId(a.getResidentId());
+        log.setPersonId(approvalId);
         log.setApprovalId(approvalId);
         log.setEntryTimestamp(LocalDateTime.now());
         log.setCategory(a.getCategory());
@@ -72,8 +72,7 @@ public class GateController {
      * getActiveEntry → confirmExit → setExitTimestamp → persist → removeFromOccupancy
      */
     public EntryLog registerVisitorExit(int approvalId) {
-        EntryLog log = entryLogDAO.getActiveEntryByPersonId(0, "VISITOR");
-        // Try to find by approval
+        EntryLog log = entryLogDAO.getActiveEntryByPersonId(approvalId, "VISITOR");
         if (log == null) {
             List<EntryLog> actives = entryLogDAO.getActiveEntries();
             for (EntryLog el : actives) {
@@ -189,11 +188,13 @@ public class GateController {
             }
         }
         
-        int logId = log != null ? log.getLogId() : 0; 
+        if (log == null) {
+            return false;
+        }
 
         ViolationDAO vDao = new ViolationDAO();
         Violation v1 = new Violation();
-        v1.setLogId(logId);
+        v1.setLogId(log.getLogId());
         v1.setViolationType(Violation.ViolationType.UNAUTHORIZED);
         v1.setDescription("Visitor attempted to share QR code for multiple entries. Original approval ID: " + approvalId);
         vDao.createViolation(v1);

@@ -3,42 +3,47 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.LoginUIController"
-           prefWidth="500" prefHeight="600" styleClass="root">
+           prefWidth="480" prefHeight="580" styleClass="root">
 
-    <VBox alignment="CENTER" spacing="20" maxWidth="380">
+    <VBox alignment="CENTER" maxWidth="360">
         <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
 
-        <VBox styleClass="glass-panel" spacing="24" alignment="CENTER">
-            <!-- Title -->
-            <Label text="🏠 Smart Society" styleClass="title-label"/>
-            <Label text="Entry Management System" styleClass="subtitle-label"/>
+        <VBox fx:id="loginCard" styleClass="login-card" spacing="18">
+
+            <!-- App icon + branding -->
+            <VBox alignment="CENTER" spacing="10">
+                <StackPane styleClass="avatar-circle" prefWidth="56" prefHeight="56" alignment="CENTER">
+                    <Label text="🏠" style="-fx-font-size: 26px;"/>
+                </StackPane>
+                <Label text="Smart Society" styleClass="title-label"/>
+                <Label text="Entry Management System" styleClass="subtitle-label"/>
+            </VBox>
 
             <Separator/>
 
-            <!-- Login Form -->
-            <VBox spacing="14">
-                <Label text="Username" styleClass="label"/>
+            <!-- Form fields -->
+            <VBox spacing="12">
+                <Label text="USERNAME" styleClass="field-label"/>
                 <TextField fx:id="usernameField" promptText="Enter your username"/>
 
-                <Label text="Password" styleClass="label"/>
+                <Label text="PASSWORD" styleClass="field-label"/>
                 <PasswordField fx:id="passwordField" promptText="Enter your password"/>
             </VBox>
 
-            <!-- Status Label -->
-            <Label fx:id="statusLabel" text="" styleClass="error-label" wrapText="true"/>
+            <!-- Status -->
+            <Label fx:id="statusLabel" text="" wrapText="true"/>
 
-            <!-- Login Button -->
+            <!-- Sign In -->
             <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
                     maxWidth="Infinity" prefHeight="44"/>
 
-            <!-- Info -->
-            <VBox alignment="CENTER" spacing="4">
-                <Label text="Default credentials:" style="-fx-text-fill: rgba(255,255,255,0.4); -fx-font-size: 11px;"/>
-                <Label text="admin / guard1 / resident1" style="-fx-text-fill: rgba(255,255,255,0.3); -fx-font-size: 11px;"/>
-                <Label text="Password: password123" style="-fx-text-fill: rgba(255,255,255,0.3); -fx-font-size: 11px;"/>
+            <!-- Hint -->
+            <VBox alignment="CENTER" spacing="3">
+                <Label text="Default credentials" style="-fx-text-fill: rgba(255,255,255,0.22); -fx-font-size: 11px;"/>
+                <Label text="admin / guard1 / resident1  •  password123"
+                       style="-fx-text-fill: rgba(255,255,255,0.16); -fx-font-size: 11px;"/>
             </VBox>
         </VBox>
     </VBox>

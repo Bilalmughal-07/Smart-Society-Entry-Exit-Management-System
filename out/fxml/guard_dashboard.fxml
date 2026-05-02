@@ -7,126 +7,152 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.GuardDashboardController"
             styleClass="root">
-    <top>
-        <HBox styleClass="glass-panel-light" spacing="20" alignment="CENTER_LEFT">
-            <padding><Insets top="12" right="20" bottom="12" left="20"/></padding>
-            <Label text="🛡️ Guard Dashboard" styleClass="section-label" HBox.hgrow="ALWAYS"/>
-            <Label fx:id="welcomeLabel" text="Welcome" styleClass="label"/>
-            <Label fx:id="occupancyLabel" text="Occupancy: 0" style="-fx-text-fill: #22d3ee; -fx-font-weight: bold;"/>
-            <Button text="Logout" onAction="#handleLogout" styleClass="button-danger" prefHeight="32"/>
-        </HBox>
-    </top>
 
+    <!-- ═══ Sidebar ═══ -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="220" minWidth="200">
+
+            <!-- User area -->
+            <VBox styleClass="sidebar-user">
+                <StackPane styleClass="avatar-circle" prefWidth="48" prefHeight="48" alignment="CENTER">
+                    <Label fx:id="avatarLabel" text="G" styleClass="avatar-label"/>
+                </StackPane>
+                <Label fx:id="welcomeLabel" text="" styleClass="sidebar-username"/>
+                <Label text="Security Guard" styleClass="sidebar-role"/>
+                <Label fx:id="occupancyLabel" text="Occupancy: 0" styleClass="occupancy-badge"/>
+            </VBox>
+
+            <!-- Navigation -->
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Button fx:id="navBtn0" text="🔍  Scan QR Code" onAction="#showSection0"
+                        styleClass="sidebar-item sidebar-item-active" maxWidth="Infinity"/>
+                <Button fx:id="navBtn1" text="📥  Entry / Exit" onAction="#showSection1"
+                        styleClass="sidebar-item" maxWidth="Infinity"/>
+                <Button fx:id="navBtn2" text="🚶  Walk-in Request" onAction="#showSection2"
+                        styleClass="sidebar-item" maxWidth="Infinity"/>
+                <Button fx:id="navBtn3" text="📅  Today's Approvals" onAction="#showSection3"
+                        styleClass="sidebar-item" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Sign Out -->
+            <VBox styleClass="sidebar-footer">
+                <Button text="Sign Out" onAction="#handleLogout" styleClass="sidebar-logout" maxWidth="Infinity"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- ═══ Content Area ═══ -->
     <center>
-        <TabPane tabClosingPolicy="UNAVAILABLE">
-            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+        <StackPane styleClass="content-area">
 
-            <!-- Tab 1: QR Scan & Verify -->
-            <Tab text="🔍 Scan QR Code">
-                <VBox spacing="16" styleClass="glass-panel" alignment="TOP_CENTER">
-                    <Label text="Verify Visitor / Resident QR Code" styleClass="section-label"/>
-                    
-                    <!-- Camera UI Box -->
-                    <VBox fx:id="cameraUiBox" spacing="10" alignment="CENTER" visible="true" managed="true">
-                        <Label fx:id="instructionLabel" text="Please hold up QR" style="-fx-font-size: 14px; -fx-text-fill: #94a3b8;"/>
-                        <Label fx:id="timerLabel" text="15s" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #facc15;"/>
-                        
-                        <StackPane style="-fx-border-color: #38bdf8; -fx-border-width: 2px; -fx-border-radius: 8px;">
-                            <ImageView fx:id="cameraFeedView" fitWidth="320" fitHeight="240" preserveRatio="true"/>
-                            <!-- Alignment Box Overlay -->
-                            <javafx.scene.shape.Rectangle width="200" height="200" fill="transparent" stroke="#22c55e" strokeWidth="3" strokeType="INSIDE"/>
-                        </StackPane>
-                        
-                        <Label fx:id="warningLabel" text="QR Not Detected" styleClass="error-label" visible="false" managed="false"/>
-                        <Button fx:id="retryBtn" text="🔄 Retry Scan" onAction="#handleRetryScan" styleClass="button-warning" visible="false" managed="false"/>
-                        
-                        <Button text="Enter Manually" onAction="#handleEnterManually" styleClass="button-secondary"/>
+            <!-- Section 0: Scan QR Code -->
+            <VBox fx:id="section0" spacing="16" alignment="TOP_CENTER" visible="true" managed="true"
+                  maxWidth="Infinity" maxHeight="Infinity">
+                <Label text="Verify Visitor / Resident QR Code" styleClass="section-label"/>
+
+                <!-- Camera UI -->
+                <VBox fx:id="cameraUiBox" spacing="10" alignment="CENTER" visible="true" managed="true">
+                    <Label fx:id="instructionLabel" text="Please hold up QR"
+                           style="-fx-font-size: 14px; -fx-text-fill: rgba(255,255,255,0.55);"/>
+                    <Label fx:id="timerLabel" text="15s"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #FF9F0A;"/>
+                    <StackPane style="-fx-border-color: rgba(10,132,255,0.6); -fx-border-width: 2; -fx-border-radius: 10;">
+                        <ImageView fx:id="cameraFeedView" fitWidth="320" fitHeight="240" preserveRatio="true"/>
+                        <javafx.scene.shape.Rectangle width="200" height="200" fill="transparent"
+                                                      stroke="#30D158" strokeWidth="2.5" strokeType="INSIDE"/>
+                    </StackPane>
+                    <Label fx:id="warningLabel" text="QR Not Detected" styleClass="error-label"
+                           visible="false" managed="false"/>
+                    <Button fx:id="retryBtn" text="Retry Scan" onAction="#handleRetryScan"
+                            styleClass="button-warning" visible="false" managed="false"/>
+                    <Button text="Enter Manually" onAction="#handleEnterManually" styleClass="button-secondary"/>
+                </VBox>
+
+                <!-- Manual Input -->
+                <HBox fx:id="manualInputBox" spacing="10" alignment="CENTER_LEFT" visible="false" managed="false">
+                    <TextField fx:id="qrInputField" promptText="Enter or scan QR code data" HBox.hgrow="ALWAYS"/>
+                    <Button text="Verify" onAction="#handleVerifyQR" styleClass="button"/>
+                    <Button text="Scan QR" onAction="#handleStartWebcam" styleClass="button-secondary"/>
+                </HBox>
+
+                <Label fx:id="scanResultLabel" text="" wrapText="true"/>
+
+                <!-- Verification Result -->
+                <VBox fx:id="verifyResultBox" spacing="12" styleClass="glass-panel-light"
+                      visible="false" managed="false">
+                    <Label fx:id="verifyVisitorName" text=""
+                           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: rgba(255,255,255,0.92);"/>
+                    <Label fx:id="verifyDetails" text="" wrapText="true"
+                           style="-fx-text-fill: rgba(255,255,255,0.60);"/>
+                    <HBox spacing="10">
+                        <Button fx:id="registerEntryBtn" text="Register Entry"
+                                onAction="#handleRegisterEntry" styleClass="button-success"/>
+                        <Button fx:id="reportViolationBtn" text="Report QR Sharing"
+                                onAction="#handleReportViolation" styleClass="button-danger"
+                                visible="false" managed="false"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <!-- Section 1: Entry / Exit -->
+            <VBox fx:id="section1" spacing="16" visible="false" managed="false"
+                  maxWidth="Infinity" maxHeight="Infinity">
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="Active Occupants" styleClass="section-label" HBox.hgrow="ALWAYS"/>
+                    <Button text="Refresh" onAction="#loadActiveEntries" styleClass="button-secondary"/>
+                </HBox>
+                <TableView fx:id="activeEntriesTable" VBox.vgrow="ALWAYS" maxWidth="Infinity">
+                    <columns>
+                        <TableColumn fx:id="colName" text="Name" prefWidth="130"/>
+                        <TableColumn fx:id="colType" text="Type" prefWidth="80"/>
+                        <TableColumn fx:id="colCat" text="Category" prefWidth="80"/>
+                        <TableColumn fx:id="colEntry" text="Entry Time" prefWidth="140"/>
+                        <TableColumn fx:id="colDuration" text="Duration" prefWidth="80"/>
+                        <TableColumn fx:id="colLogStatus" text="Status" prefWidth="70"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Section 2: Walk-in Request -->
+            <VBox fx:id="section2" spacing="16" visible="false" managed="false"
+                  maxWidth="Infinity" maxHeight="Infinity">
+                <Label text="Request Approval for Walk-in Visitor" styleClass="section-label"/>
+                <HBox spacing="16">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="VISITOR NAME" styleClass="field-label"/>
+                        <TextField fx:id="walkInVisitorName" promptText="Visitor's full name"/>
                     </VBox>
-
-                    <!-- Manual Input Box -->
-                    <HBox fx:id="manualInputBox" spacing="12" alignment="CENTER_LEFT" visible="false" managed="false">
-                        <TextField fx:id="qrInputField" promptText="Enter or scan QR code data" HBox.hgrow="ALWAYS"/>
-                        <Button text="🔍 Verify" onAction="#handleVerifyQR" styleClass="button"/>
-                        <Button text="📷 Scan QR" onAction="#handleStartWebcam" styleClass="button-secondary"/>
-                    </HBox>
-
-                    <Label fx:id="scanResultLabel" text="" wrapText="true"/>
-
-                    <!-- Verification Result Panel -->
-                    <VBox fx:id="verifyResultBox" spacing="10" styleClass="glass-panel-light" visible="false" managed="false">
-                        <Label fx:id="verifyVisitorName" text="" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-                        <Label fx:id="verifyDetails" text="" wrapText="true"/>
-                        <HBox spacing="12">
-                            <Button fx:id="registerEntryBtn" text="✅ Register Entry" onAction="#handleRegisterEntry" styleClass="button-success"/>
-                            <Button fx:id="reportViolationBtn" text="🚨 Report QR Sharing" onAction="#handleReportViolation" styleClass="button-danger" visible="false" managed="false"/>
-                        </HBox>
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="PURPOSE" styleClass="field-label"/>
+                        <TextField fx:id="walkInPurpose" promptText="Purpose of visit"/>
                     </VBox>
+                </HBox>
+                <VBox spacing="6">
+                    <Label text="SELECT RESIDENT" styleClass="field-label"/>
+                    <ComboBox fx:id="residentCombo" maxWidth="Infinity" promptText="Select resident to notify"/>
                 </VBox>
-            </Tab>
+                <Label fx:id="walkInStatusLabel" text=""/>
+                <Button text="Send Request to Resident" onAction="#handleWalkInRequest" styleClass="button"/>
+            </VBox>
 
-            <!-- Tab 2: Register Entry/Exit -->
-            <Tab text="📥 Entry / Exit">
-                <VBox spacing="16" styleClass="glass-panel">
-                    <Label text="Active Occupants" styleClass="section-label"/>
-                    <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Button text="Refresh" onAction="#loadActiveEntries" styleClass="button-secondary"/>
-                    </HBox>
+            <!-- Section 3: Today's Approvals -->
+            <VBox fx:id="section3" spacing="16" visible="false" managed="false"
+                  maxWidth="Infinity" maxHeight="Infinity">
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="Expected Visitors Today" styleClass="section-label" HBox.hgrow="ALWAYS"/>
+                    <Button text="Refresh" onAction="#loadTodayApprovals" styleClass="button-secondary"/>
+                </HBox>
+                <TableView fx:id="todayApprovalsTable" VBox.vgrow="ALWAYS" maxWidth="Infinity">
+                    <columns>
+                        <TableColumn fx:id="colTVisitor" text="Visitor" prefWidth="120"/>
+                        <TableColumn fx:id="colTResident" text="Resident" prefWidth="120"/>
+                        <TableColumn fx:id="colTCategory" text="Category" prefWidth="80"/>
+                        <TableColumn fx:id="colTTime" text="Time Window" prefWidth="110"/>
+                        <TableColumn fx:id="colTStatus" text="Status" prefWidth="80"/>
+                    </columns>
+                </TableView>
+            </VBox>
 
-                    <TableView fx:id="activeEntriesTable" VBox.vgrow="ALWAYS">
-                        <columns>
-                            <TableColumn fx:id="colName" text="Name" prefWidth="130"/>
-                            <TableColumn fx:id="colType" text="Type" prefWidth="80"/>
-                            <TableColumn fx:id="colCat" text="Category" prefWidth="80"/>
-                            <TableColumn fx:id="colEntry" text="Entry Time" prefWidth="140"/>
-                            <TableColumn fx:id="colDuration" text="Duration" prefWidth="80"/>
-                            <TableColumn fx:id="colLogStatus" text="Status" prefWidth="70"/>
-                        </columns>
-                    </TableView>
-
-                </VBox>
-            </Tab>
-
-            <!-- Tab 3: Walk-in Approval Request -->
-            <Tab text="🚶 Walk-in Request">
-                <VBox spacing="16" styleClass="glass-panel">
-                    <Label text="Request Approval for Walk-in Visitor" styleClass="section-label"/>
-                    <HBox spacing="16">
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Visitor Name"/>
-                            <TextField fx:id="walkInVisitorName" promptText="Visitor's full name"/>
-                        </VBox>
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Purpose"/>
-                            <TextField fx:id="walkInPurpose" promptText="Purpose of visit"/>
-                        </VBox>
-                    </HBox>
-                    <VBox spacing="6">
-                        <Label text="Select Resident"/>
-                        <ComboBox fx:id="residentCombo" maxWidth="Infinity" promptText="Select resident to notify"/>
-                    </VBox>
-                    <Label fx:id="walkInStatusLabel" text=""/>
-                    <Button text="Send Request to Resident" onAction="#handleWalkInRequest" styleClass="button"/>
-                </VBox>
-            </Tab>
-
-            <!-- Tab 4: Today's Approvals -->
-            <Tab text="📅 Today's Approvals">
-                <VBox spacing="12" styleClass="glass-panel">
-                    <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Label text="Expected Visitors Today" styleClass="section-label" HBox.hgrow="ALWAYS"/>
-                        <Button text="Refresh" onAction="#loadTodayApprovals" styleClass="button-secondary"/>
-                    </HBox>
-                    <TableView fx:id="todayApprovalsTable" VBox.vgrow="ALWAYS">
-                        <columns>
-                            <TableColumn fx:id="colTVisitor" text="Visitor" prefWidth="120"/>
-                            <TableColumn fx:id="colTResident" text="Resident" prefWidth="120"/>
-                            <TableColumn fx:id="colTCategory" text="Category" prefWidth="80"/>
-                            <TableColumn fx:id="colTTime" text="Time Window" prefWidth="110"/>
-                            <TableColumn fx:id="colTStatus" text="Status" prefWidth="80"/>
-                        </columns>
-                    </TableView>
-                </VBox>
-            </Tab>
-        </TabPane>
+        </StackPane>
     </center>
 </BorderPane>

@@ -89,7 +89,7 @@ public class AdminController {
         boolean persisted = violationDAO.persistViolationAction(violationId, action, adminId);
         if (persisted) {
             String info = v.getViolationTypeString() + " by " + v.getPersonName();
-            notifService.notifyAboutViolation(0, info, action);
+            notifService.notifyAboutViolation(v.getResidentId(), info, action);
         }
         return persisted;
     }

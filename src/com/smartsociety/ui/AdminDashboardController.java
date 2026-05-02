@@ -8,31 +8,31 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/**
- * UI Controller for Admin Dashboard.
- */
 public class AdminDashboardController {
 
-    @FXML private Label welcomeLabel, occupancyCount, overstayCount, ruleStatusLabel;
+    @FXML private Label welcomeLabel, avatarLabel, occupancyCount, overstayCount, ruleStatusLabel;
     @FXML private TextField ruleNameField, ruleStartField, ruleEndField, ruleMaxDuration, ruleMaxVisitors;
     @FXML private ComboBox<String> ruleCategoryCombo;
 
-    // Rules table
     @FXML private TableView<AccessRule> rulesTable;
     @FXML private TableColumn<AccessRule, String> colRuleName, colRuleCat, colRuleTime, colRuleDuration, colRuleVisitors, colRuleActive;
 
-    // Occupancy table
     @FXML private TableView<EntryLog> occupancyTable;
     @FXML private TableColumn<EntryLog, String> colOccName, colOccType, colOccCategory, colOccEntry, colOccDuration, colOccUnit;
 
-    // Violations table
     @FXML private TableView<Violation> violationsTable;
     @FXML private TableColumn<Violation, String> colViolId, colViolType, colViolPerson, colViolResidentId, colViolResidentName, colViolDesc, colViolStatus, colViolAction, colViolDate;
+
+    // Sidebar nav
+    @FXML private VBox section0, section1, section2;
+    @FXML private Button navBtn0, navBtn1, navBtn2;
+    private int currentSection = 0;
 
     private final AdminController adminCtrl = new AdminController();
     private UserSession session;
@@ -40,11 +40,13 @@ public class AdminDashboardController {
     @FXML
     public void initialize() {
         session = LoginController.getCurrentSession();
-        if (session != null) welcomeLabel.setText("Admin: " + session.getFullName());
+        if (session != null) {
+            welcomeLabel.setText(session.getFullName());
+            avatarLabel.setText(String.valueOf(session.getFullName().charAt(0)).toUpperCase());
+        }
 
         ruleCategoryCombo.setItems(FXCollections.observableArrayList("Guest", "Delivery", "Service", "Contractor", "Other"));
 
-        // Rules table columns
         colRuleName.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getRuleName()));
         colRuleCat.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getCategory()));
         colRuleTime.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getTimeWindow()));
@@ -52,7 +54,6 @@ public class AdminDashboardController {
         colRuleVisitors.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(String.valueOf(cd.getValue().getMaxVisitorsPerDay())));
         colRuleActive.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getActiveStatus()));
 
-        // Occupancy table columns
         colOccName.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
             cd.getValue().getPersonName() != null ? cd.getValue().getPersonName() : "ID:" + cd.getValue().getPersonId()));
         colOccType.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getPersonType().name()));
@@ -63,7 +64,6 @@ public class AdminDashboardController {
         colOccUnit.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
             cd.getValue().getResidentUnit() != null ? cd.getValue().getResidentUnit() : "—"));
 
-        // Violations table columns
         colViolId.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(String.valueOf(cd.getValue().getViolationId())));
         colViolType.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getViolationTypeString()));
         colViolPerson.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
@@ -78,7 +78,6 @@ public class AdminDashboardController {
         colViolDate.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(
             cd.getValue().getDetectedAt() != null ? cd.getValue().getDetectedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) : ""));
 
-        // Selection listener for rules table to populate edit fields
         rulesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 ruleNameField.setText(newVal.getRuleName());
@@ -93,9 +92,35 @@ public class AdminDashboardController {
         loadRules();
         loadOccupancy();
         loadViolations();
+
+        AnimationUtils.introAnimation(section0);
+    }
+
+    // === Sidebar Navigation ===
+
+    @FXML private void showSection0() { showSection(0); }
+    @FXML private void showSection1() { showSection(1); }
+    @FXML private void showSection2() { showSection(2); }
+
+    private void showSection(int index) {
+        if (index == currentSection) return;
+        VBox[] sections = { section0, section1, section2 };
+        AnimationUtils.switchSection(sections[currentSection], sections[index],
+                index > currentSection ? 1 : -1);
+        activateNav(index);
+        currentSection = index;
+    }
+
+    private void activateNav(int index) {
+        Button[] btns = { navBtn0, navBtn1, navBtn2 };
+        for (int i = 0; i < btns.length; i++) {
+            btns[i].getStyleClass().remove("sidebar-item-active");
+            if (i == index) btns[i].getStyleClass().add("sidebar-item-active");
+        }
     }
 
     // === Access Rules ===
+
     @FXML
     private void handleSaveRule() {
         try {
@@ -107,7 +132,7 @@ public class AdminDashboardController {
             String visStr = ruleMaxVisitors.getText().trim();
 
             if (name.isEmpty() || cat == null || startStr.isEmpty() || endStr.isEmpty() || durStr.isEmpty() || visStr.isEmpty()) {
-                ruleStatusLabel.setText("❌ All fields are mandatory.");
+                ruleStatusLabel.setText("All fields are required.");
                 ruleStatusLabel.getStyleClass().setAll("error-label");
                 return;
             }
@@ -125,24 +150,24 @@ public class AdminDashboardController {
             if (selected != null) {
                 rule.setRuleId(selected.getRuleId());
                 adminCtrl.updateRule(rule);
-                ruleStatusLabel.setText("✅ Rule updated."); ruleStatusLabel.getStyleClass().setAll("success-label");
+                ruleStatusLabel.setText("Rule updated."); ruleStatusLabel.getStyleClass().setAll("success-label");
             } else {
                 int id = adminCtrl.defineNewRule(rule);
-                ruleStatusLabel.setText(id > 0 ? "✅ Rule created." : "❌ Failed.");
+                ruleStatusLabel.setText(id > 0 ? "Rule created." : "Failed to create rule.");
                 ruleStatusLabel.getStyleClass().setAll(id > 0 ? "success-label" : "error-label");
             }
             loadRules();
         } catch (java.time.format.DateTimeParseException e) {
-            ruleStatusLabel.setText("❌ Invalid time format. Use HH:MM");
+            ruleStatusLabel.setText("Invalid time format. Use HH:MM");
             ruleStatusLabel.getStyleClass().setAll("error-label");
         } catch (NumberFormatException e) {
-            ruleStatusLabel.setText("❌ Duration/Visitors must be numbers.");
+            ruleStatusLabel.setText("Duration and visitors must be numbers.");
             ruleStatusLabel.getStyleClass().setAll("error-label");
         } catch (IllegalArgumentException e) {
-            ruleStatusLabel.setText("❌ " + e.getMessage());
+            ruleStatusLabel.setText(e.getMessage());
             ruleStatusLabel.getStyleClass().setAll("error-label");
         } catch (Exception e) {
-            ruleStatusLabel.setText("❌ System error occurred.");
+            ruleStatusLabel.setText("System error occurred.");
             ruleStatusLabel.getStyleClass().setAll("error-label");
         }
     }
@@ -152,7 +177,8 @@ public class AdminDashboardController {
         AccessRule selected = rulesTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             adminCtrl.deleteRule(selected.getRuleId());
-            ruleStatusLabel.setText("Rule deleted."); loadRules();
+            ruleStatusLabel.setText("Rule deleted.");
+            loadRules();
         }
     }
 
@@ -161,6 +187,7 @@ public class AdminDashboardController {
     }
 
     // === Occupancy ===
+
     @FXML public void loadOccupancy() {
         List<EntryLog> entries = adminCtrl.getActiveEntries();
         occupancyTable.setItems(FXCollections.observableArrayList(entries));
@@ -177,6 +204,7 @@ public class AdminDashboardController {
     }
 
     // === Violations ===
+
     @FXML public void loadViolations() {
         violationsTable.setItems(FXCollections.observableArrayList(adminCtrl.getAllViolations()));
     }
@@ -194,13 +222,17 @@ public class AdminDashboardController {
 
     @FXML
     private void handleLogout() {
-        try {
-            new LoginController().logout();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-            Scene scene = new Scene(loader.load(), 500, 600);
-            scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
-            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
-            stage.setTitle("Smart Society - Login"); stage.setScene(scene); stage.centerOnScreen();
-        } catch (Exception e) { e.printStackTrace(); }
+        Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+        AnimationUtils.sceneTransition(welcomeLabel.getScene().getRoot(), () -> {
+            try {
+                new LoginController().logout();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+                Scene scene = new Scene(loader.load(), 500, 600);
+                scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
+                stage.setTitle("Smart Society - Login");
+                stage.setScene(scene);
+                stage.centerOnScreen();
+            } catch (Exception e) { e.printStackTrace(); }
+        });
     }
 }

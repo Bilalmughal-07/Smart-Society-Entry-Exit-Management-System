@@ -6,25 +6,24 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-/**
- * UI Controller for the Login screen.
- * Delegates authentication to LoginController (GRASP Controller).
- */
 public class LoginUIController {
 
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
     @FXML private Label statusLabel;
     @FXML private Button loginButton;
+    @FXML private VBox loginCard;
 
     private final LoginController loginController = new LoginController();
 
     @FXML
     public void initialize() {
-        // Allow Enter key to trigger login
         passwordField.setOnAction(e -> handleLogin());
+        AnimationUtils.introAnimation(loginCard);
+        AnimationUtils.addHoverScale(loginButton);
     }
 
     @FXML
@@ -33,8 +32,8 @@ public class LoginUIController {
         String password = passwordField.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
-            statusLabel.setText("Please enter both username and password.");
-            statusLabel.getStyleClass().setAll("error-label");
+            AnimationUtils.showAutoFadeStatus(statusLabel, "Please enter both username and password.", "error-label");
+            AnimationUtils.shakeNode(loginCard);
             return;
         }
 
@@ -43,12 +42,11 @@ public class LoginUIController {
 
         UserSession session = loginController.login(username, password);
         if (session == null) {
-            statusLabel.setText("Invalid username or password. Please try again.");
-            statusLabel.getStyleClass().setAll("error-label");
+            AnimationUtils.showAutoFadeStatus(statusLabel, "Invalid username or password.", "error-label");
+            AnimationUtils.shakeNode(loginCard);
             return;
         }
 
-        // Navigate to role-specific dashboard
         try {
             String fxmlPath;
             String title;
@@ -70,14 +68,22 @@ public class LoginUIController {
                     return;
             }
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Scene scene = new Scene(loader.load(), 1100, 700);
-            scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
-
             Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setTitle("Smart Society - " + title);
-            stage.setScene(scene);
-            stage.centerOnScreen();
+            final String fp = fxmlPath;
+            final String t = title;
+
+            AnimationUtils.sceneTransition(loginButton.getScene().getRoot(), () -> {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource(fp));
+                    Scene scene = new Scene(loader.load(), 1100, 700);
+                    scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
+                    stage.setTitle("Smart Society - " + t);
+                    stage.setScene(scene);
+                    stage.centerOnScreen();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
 
         } catch (Exception e) {
             statusLabel.setText("Error loading dashboard: " + e.getMessage());
