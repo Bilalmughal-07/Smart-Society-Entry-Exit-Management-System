@@ -52,6 +52,8 @@
                         styleClass="sidebar-item" maxWidth="Infinity"/>
                 <Button fx:id="navBtn4" text="📜  Access Rules" onAction="#showSection4"
                         styleClass="sidebar-item" maxWidth="Infinity"/>
+                <Button fx:id="navBtn5" text="QR Code" onAction="#showSection5"
+                        styleClass="sidebar-item" maxWidth="Infinity"/>
             </VBox>
 
             <!-- Sign Out -->
@@ -213,6 +215,19 @@
                         <TableColumn fx:id="colRuleVisitors" text="Max Visitors/Day" prefWidth="110"/>
                     </columns>
                 </TableView>
+            </VBox>
+
+            <!-- Section 5: Resident QR Code -->
+            <VBox fx:id="section5" spacing="16" visible="false" managed="false"
+                  maxWidth="Infinity" maxHeight="Infinity" alignment="CENTER">
+                <Label text="Resident Gate QR" styleClass="section-label"/>
+                <StackPane styleClass="qr-container" prefWidth="260" prefHeight="260" alignment="CENTER">
+                    <ImageView fx:id="residentQrImageView" fitWidth="220" fitHeight="220" preserveRatio="true"/>
+                </StackPane>
+                <Label fx:id="residentQrCodeLabel" text=""
+                       style="-fx-font-size: 14px; -fx-text-fill: #4DAAFF; -fx-font-family: monospace;"/>
+                <Label fx:id="residentQrStatusLabel" text="" wrapText="true"/>
+                <Button text="Refresh" onAction="#loadResidentQR" styleClass="button-secondary"/>
             </VBox>
 
         </StackPane>

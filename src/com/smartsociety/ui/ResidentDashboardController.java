@@ -2,10 +2,13 @@ package com.smartsociety.ui;
 
 import com.smartsociety.controller.ApprovalController;
 import com.smartsociety.controller.LoginController;
+import com.smartsociety.dao.UserDAO;
 import com.smartsociety.model.Approval;
 import com.smartsociety.model.AccessRule;
+import com.smartsociety.model.User;
 import com.smartsociety.model.UserSession;
 import com.smartsociety.service.NotificationService;
+import com.smartsociety.service.QRCodeService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -35,6 +38,8 @@ public class ResidentDashboardController {
     @FXML private DatePicker visitDatePicker;
     @FXML private VBox qrDisplayBox;
     @FXML private ImageView qrImageView;
+    @FXML private Label residentQrCodeLabel, residentQrStatusLabel;
+    @FXML private ImageView residentQrImageView;
     @FXML private Button notifBadge;
 
     @FXML private TableView<Approval> approvalsTable;
@@ -50,13 +55,15 @@ public class ResidentDashboardController {
 
     // Sidebar nav — section0 is a ScrollPane, rest are VBox
     @FXML private ScrollPane section0;
-    @FXML private VBox section1, section2, section3, section4;
-    @FXML private Button navBtn0, navBtn1, navBtn2, navBtn3, navBtn4;
+    @FXML private VBox section1, section2, section3, section4, section5;
+    @FXML private Button navBtn0, navBtn1, navBtn2, navBtn3, navBtn4, navBtn5;
     @FXML private Pane ambientLayer;
     private int currentSection = 0;
 
     private final ApprovalController approvalCtrl = new ApprovalController();
     private final NotificationService notifService = NotificationService.getInstance();
+    private final QRCodeService qrService = QRCodeService.getInstance();
+    private final UserDAO userDAO = new UserDAO();
     private UserSession session;
     private int pendingArrivalRequestId = -1;
 
@@ -122,9 +129,10 @@ public class ResidentDashboardController {
             loadNotifications();
             loadRules();
         }
+        loadResidentQR();
 
         DashboardUiUtils.useConstrainedTableColumns(approvalsTable, arrivalRequestsTable, rulesTable);
-        DashboardUiUtils.initializeSidebar(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4 }, currentSection);
+        DashboardUiUtils.initializeSidebar(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4, navBtn5 }, currentSection);
 
         javafx.beans.value.ChangeListener<String> timeCalcListener = (obs, oldVal, newVal) -> updateEndTime();
         timeHourField.textProperty().addListener(timeCalcListener);
@@ -145,7 +153,7 @@ public class ResidentDashboardController {
         });
 
         AnimationUtils.installAmbientMotion(ambientLayer);
-        Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4, notifBadge };
+        Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4, navBtn5, notifBadge };
         for (Button button : animatedButtons) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
     }
@@ -167,10 +175,11 @@ public class ResidentDashboardController {
     @FXML private void showSection2() { showSection(2); }
     @FXML private void showSection3() { showSection(3); }
     @FXML private void showSection4() { showSection(4); }
+    @FXML private void showSection5() { showSection(5); }
 
     private void showSection(int index) {
         if (index == currentSection) return;
-        Node[] sections = { section0, section1, section2, section3, section4 };
+        Node[] sections = { section0, section1, section2, section3, section4, section5 };
         AnimationUtils.switchSection(sections[currentSection], sections[index],
                 index > currentSection ? 1 : -1);
         activateNav(index);
@@ -178,7 +187,7 @@ public class ResidentDashboardController {
     }
 
     private void activateNav(int index) {
-        DashboardUiUtils.activateSidebarButton(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4 }, index);
+        DashboardUiUtils.activateSidebarButton(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4, navBtn5 }, index);
     }
 
     // === Time calculation ===
@@ -309,6 +318,39 @@ public class ResidentDashboardController {
         if (selected == null) return;
         approvalCtrl.respondToArrivalRequest(Integer.parseInt(selected[0]), false);
         loadArrivalRequests();
+    }
+
+    @FXML
+    private void loadResidentQR() {
+        if (session == null) return;
+
+        User resident = userDAO.getUserById(session.getUserId());
+        if (resident == null) {
+            residentQrStatusLabel.setText("Resident profile could not be loaded.");
+            residentQrStatusLabel.getStyleClass().setAll("error-label");
+            return;
+        }
+
+        String qrCode = resident.getQrCode();
+        if (qrCode == null || qrCode.trim().isEmpty()) {
+            qrCode = qrService.generateResidentQR(resident.getUserId());
+            if (!userDAO.updateQRCode(resident.getUserId(), qrCode)) {
+                residentQrStatusLabel.setText("QR code could not be saved.");
+                residentQrStatusLabel.getStyleClass().setAll("error-label");
+                return;
+            }
+            resident.setQrCode(qrCode);
+        }
+
+        residentQrCodeLabel.setText(qrCode);
+        javafx.scene.image.Image qrImg = qrService.generateQRImage(qrCode);
+        if (qrImg != null) residentQrImageView.setImage(qrImg);
+        residentQrStatusLabel.setText("Status: " + resident.getStatus());
+        residentQrStatusLabel.getStyleClass().setAll(resident.getStatus() == User.Status.INSIDE
+                ? "warning-label"
+                : "success-label");
+        session.getUser().setQrCode(qrCode);
+        session.getUser().setStatus(resident.getStatus());
     }
 
     // === Data Loading ===

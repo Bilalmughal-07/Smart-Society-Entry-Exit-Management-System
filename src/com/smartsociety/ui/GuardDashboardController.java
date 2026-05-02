@@ -207,6 +207,9 @@ public class GuardDashboardController {
         String qrType = qrService.getQRType(qrData);
         verifiedQrData = qrData;
         verifiedQrType = qrType;
+        verifiedApprovalId = -1;
+        reportViolationBtn.setVisible(false);
+        reportViolationBtn.setManaged(false);
 
         if ("APPROVAL".equals(qrType)) {
             String result = gateCtrl.verifyVisitorApproval(qrData);
@@ -238,30 +241,19 @@ public class GuardDashboardController {
                 scanResultLabel.getStyleClass().setAll("error-label");
             }
         } else if ("RESIDENT".equals(qrType)) {
-            int resId = qrService.decodeResidentQR(qrData);
-            if (resId > 0) {
-                User resident = userDAO.getUserById(resId);
-                if (resident != null) {
-                    verifyVisitorName.setText("Resident: " + resident.getFullName());
-                    verifyDetails.setText("Unit: " + resident.getUnitNumber() + " | Status: " + resident.getStatus());
-                    verifyResultBox.setVisible(true); verifyResultBox.setManaged(true);
-                    registerEntryBtn.setText(resident.getStatus() == User.Status.INSIDE ?
-                        "Register Resident Exit" : "Register Resident Entry");
-                    scanResultLabel.setText("Resident QR verified!");
-                    scanResultLabel.getStyleClass().setAll("success-label");
-                } else {
-                    scanResultLabel.setText("Resident not found."); scanResultLabel.getStyleClass().setAll("error-label");
-                }
+            User resident = gateCtrl.getResidentByQR(qrData);
+            if (resident != null) {
+                showResidentVerification(resident);
+            } else {
+                scanResultLabel.setText("Resident not found.");
+                scanResultLabel.getStyleClass().setAll("error-label");
+                verifyResultBox.setVisible(false); verifyResultBox.setManaged(false);
             }
         } else {
-            User u = userDAO.getUserByQRCode(qrData);
+            User u = gateCtrl.getResidentByQR(qrData);
             if (u != null) {
-                verifiedQrType = "RESIDENT"; verifiedQrData = qrData;
-                verifyVisitorName.setText("Resident: " + u.getFullName());
-                verifyDetails.setText("Unit: " + u.getUnitNumber() + " | Status: " + u.getStatus());
-                verifyResultBox.setVisible(true); verifyResultBox.setManaged(true);
-                registerEntryBtn.setText(u.getStatus() == User.Status.INSIDE ? "Register Exit" : "Register Entry");
-                scanResultLabel.setText("Resident matched!"); scanResultLabel.getStyleClass().setAll("success-label");
+                verifiedQrType = "RESIDENT";
+                showResidentVerification(u);
             } else {
                 Approval apr = gateCtrl.getApprovalByQR(qrData);
                 if (apr != null) {
@@ -280,6 +272,19 @@ public class GuardDashboardController {
         }
     }
 
+    private void showResidentVerification(User resident) {
+        boolean alreadyInside = resident.getStatus() == User.Status.INSIDE;
+        verifyVisitorName.setText("Resident: " + resident.getFullName() + (alreadyInside ? " (ALREADY INSIDE)" : ""));
+        verifyDetails.setText("Unit: " + resident.getUnitNumber() + " | Status: " + resident.getStatus());
+        verifyResultBox.setVisible(true); verifyResultBox.setManaged(true);
+        registerEntryBtn.setText(alreadyInside ? "Register Resident Exit" : "Register Resident Entry");
+        reportViolationBtn.setVisible(alreadyInside); reportViolationBtn.setManaged(alreadyInside);
+        scanResultLabel.setText(alreadyInside
+                ? "Resident already inside. Register exit or report QR sharing."
+                : "Resident QR verified!");
+        scanResultLabel.getStyleClass().setAll(alreadyInside ? "warning-label" : "success-label");
+    }
+
     @FXML
     private void handleRegisterEntry() {
         if ("APPROVAL".equals(verifiedQrType) && verifiedApprovalId > 0) {
@@ -293,9 +298,8 @@ public class GuardDashboardController {
                 scanResultLabel.getStyleClass().setAll(log != null ? "success-label" : "error-label");
             }
         } else if ("RESIDENT".equals(verifiedQrType)) {
-            User r = userDAO.getUserByQRCode(verifiedQrData);
-            if (r == null) { int rId = QRCodeService.getInstance().decodeResidentQR(verifiedQrData); r = userDAO.getUserById(rId); }
-            if (r != null && r.getStatus() == User.Status.INSIDE) {
+            User r = gateCtrl.getResidentByQR(verifiedQrData);
+            if (r != null && registerEntryBtn.getText().contains("Exit")) {
                 EntryLog log = gateCtrl.registerResidentExit(verifiedQrData);
                 scanResultLabel.setText(log != null ? "Resident exit registered! Duration: " + log.getDurationFormatted() : "Exit failed.");
             } else {
@@ -313,6 +317,12 @@ public class GuardDashboardController {
         if ("APPROVAL".equals(verifiedQrType) && verifiedApprovalId > 0) {
             boolean success = gateCtrl.reportQRSharingViolation(verifiedApprovalId, session.getUserId());
             scanResultLabel.setText(success ? "QR Sharing Violation reported!" : "Failed to report violation.");
+            scanResultLabel.getStyleClass().setAll(success ? "success-label" : "error-label");
+            verifyResultBox.setVisible(false); verifyResultBox.setManaged(false);
+            loadActiveEntries(); updateOccupancy(); loadTodayApprovals();
+        } else if ("RESIDENT".equals(verifiedQrType)) {
+            boolean success = gateCtrl.reportResidentQRSharingViolation(verifiedQrData, session.getUserId());
+            scanResultLabel.setText(success ? "Resident QR sharing violation reported!" : "Failed to report violation.");
             scanResultLabel.getStyleClass().setAll(success ? "success-label" : "error-label");
             verifyResultBox.setVisible(false); verifyResultBox.setManaged(false);
             loadActiveEntries(); updateOccupancy(); loadTodayApprovals();

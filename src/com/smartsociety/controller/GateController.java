@@ -98,26 +98,23 @@ public class GateController {
      * scanQR → verifyQR → getProfile → recordEntry → updateStatus → addToOccupancy
      */
     public EntryLog registerResidentEntry(String qrData, int guardId) {
-        int residentId = qrService.decodeResidentQR(qrData);
-        if (residentId < 0) {
-            // Try lookup by QR code
-            User u = userDAO.getUserByQRCode(qrData);
-            if (u != null) residentId = u.getUserId();
-            else return null;
-        }
-        User resident = userDAO.getUserById(residentId);
+        User resident = resolveResidentByQR(qrData);
         if (resident == null || resident.getRole() != User.Role.RESIDENT) return null;
+        if (resident.getStatus() == User.Status.INSIDE ||
+                entryLogDAO.getActiveEntryByPersonId(resident.getUserId(), "RESIDENT") != null) {
+            return null;
+        }
 
         EntryLog log = new EntryLog();
         log.setPersonType(EntryLog.PersonType.RESIDENT);
-        log.setPersonId(residentId);
+        log.setPersonId(resident.getUserId());
         log.setEntryTimestamp(LocalDateTime.now());
         log.setCategory("RESIDENT");
         log.setGuardId(guardId);
 
         int logId = entryLogDAO.createEntryLog(log);
         if (logId > 0) {
-            userDAO.updateUserStatus(residentId, User.Status.INSIDE);
+            userDAO.updateUserStatus(resident.getUserId(), User.Status.INSIDE);
             log.setPersonName(resident.getFullName());
             log.setResidentUnit(resident.getUnitNumber());
             System.out.println("[GateController] Resident entry: " + resident.getFullName());
@@ -131,26 +128,19 @@ public class GateController {
      * scanQR → verifyQR → getActiveEntry → recordExit → updateStatus → removeFromOccupancy
      */
     public EntryLog registerResidentExit(String qrData) {
-        int residentId = qrService.decodeResidentQR(qrData);
-        if (residentId < 0) {
-            User u = userDAO.getUserByQRCode(qrData);
-            if (u != null) residentId = u.getUserId();
-            else return null;
-        }
+        User resident = resolveResidentByQR(qrData);
+        if (resident == null || resident.getRole() != User.Role.RESIDENT) return null;
 
-        EntryLog log = entryLogDAO.getActiveEntryByPersonId(residentId, "RESIDENT");
+        EntryLog log = entryLogDAO.getActiveEntryByPersonId(resident.getUserId(), "RESIDENT");
         if (log == null) return null;
 
         LocalDateTime exitTime = LocalDateTime.now();
         log.setExitTimestamp(exitTime);
         entryLogDAO.setExitTimestamp(log.getLogId(), exitTime);
-        userDAO.updateUserStatus(residentId, User.Status.OUTSIDE);
+        userDAO.updateUserStatus(resident.getUserId(), User.Status.OUTSIDE);
 
-        User resident = userDAO.getUserById(residentId);
-        if (resident != null) {
-            log.setPersonName(resident.getFullName());
-            log.setResidentUnit(resident.getUnitNumber());
-        }
+        log.setPersonName(resident.getFullName());
+        log.setResidentUnit(resident.getUnitNumber());
         System.out.println("[GateController] Resident exit. Duration: " + log.getDurationFormatted());
         return log;
     }
@@ -202,7 +192,37 @@ public class GateController {
         return true;
     }
 
+    public boolean reportResidentQRSharingViolation(String qrData, int guardId) {
+        User resident = resolveResidentByQR(qrData);
+        if (resident == null || resident.getRole() != User.Role.RESIDENT) return false;
+
+        EntryLog log = entryLogDAO.getActiveEntryByPersonId(resident.getUserId(), "RESIDENT");
+        if (log == null) return false;
+
+        ViolationDAO vDao = new ViolationDAO();
+        Violation violation = new Violation();
+        violation.setLogId(log.getLogId());
+        violation.setViolationType(Violation.ViolationType.UNAUTHORIZED);
+        violation.setDescription("Resident QR attempted for another entry while resident is already inside. Resident ID: "
+                + resident.getUserId());
+        return vDao.createViolation(violation) > 0;
+    }
+
     public List<EntryLog> getActiveEntries() { return entryLogDAO.getActiveEntries(); }
     public int getOccupancyCount() { return entryLogDAO.getActiveOccupancyCount(); }
     public Approval getApprovalByQR(String qr) { return approvalDAO.getApprovalByQRCode(qr); }
+
+    public User getResidentByQR(String qrData) { return resolveResidentByQR(qrData); }
+
+    private User resolveResidentByQR(String qrData) {
+        if (qrData == null || qrData.trim().isEmpty()) return null;
+
+        User resident = userDAO.getUserByQRCode(qrData.trim());
+        if (resident != null) return resident;
+
+        int residentId = qrService.decodeResidentQR(qrData);
+        if (residentId > 0) return userDAO.getUserById(residentId);
+
+        return null;
+    }
 }
