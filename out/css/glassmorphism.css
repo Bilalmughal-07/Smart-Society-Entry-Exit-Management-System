@@ -216,6 +216,7 @@
     -fx-padding: 10 10 18 10;
     -fx-border-color: rgba(255,255,255,0.10);
     -fx-border-width: 1 0 0 0;
+    -fx-spacing: 8;
 }
 
 .sidebar-logout {
@@ -236,6 +237,17 @@
 
 .sidebar-logout:hover {
     -fx-background-color: rgba(255,93,81,0.18);
+    -fx-text-fill: white;
+}
+
+.sidebar-exit {
+    -fx-background-color: rgba(255,255,255,0.055);
+    -fx-text-fill: rgba(255,255,255,0.78);
+    -fx-border-color: rgba(255,255,255,0.20);
+}
+
+.sidebar-exit:hover {
+    -fx-background-color: rgba(255,255,255,0.14);
     -fx-text-fill: white;
 }
 

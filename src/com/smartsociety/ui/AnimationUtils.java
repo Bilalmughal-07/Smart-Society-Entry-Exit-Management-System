@@ -1,12 +1,80 @@
 package com.smartsociety.ui;
 
 import javafx.animation.*;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class AnimationUtils {
+
+    public static Scene buildScaledScene(Parent root, Stage stage, double baseWidth, double baseHeight) {
+        StackPane scaleRoot = new StackPane(root);
+        scaleRoot.setPickOnBounds(false);
+        double sceneWidth = stage.getWidth();
+        double sceneHeight = stage.getHeight();
+        if (sceneWidth <= 0 || sceneHeight <= 0) {
+            Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+            sceneWidth = bounds.getWidth();
+            sceneHeight = bounds.getHeight();
+        }
+
+        Scene scene = new Scene(scaleRoot, sceneWidth, sceneHeight);
+        DoubleBinding safeScale = Bindings.createDoubleBinding(() -> {
+            double w = scene.getWidth();
+            double h = scene.getHeight();
+            double padX = Math.max(36, w * 0.045);
+            double padY = Math.max(24, h * 0.03);
+            double sw = (w - padX * 2) / baseWidth;
+            double sh = (h - padY * 2) / baseHeight;
+            return Math.min(1.0, Math.min(sw, sh));
+        }, scene.widthProperty(), scene.heightProperty());
+        root.scaleXProperty().bind(safeScale);
+        root.scaleYProperty().bind(root.scaleXProperty());
+        return scene;
+    }
+
+    public static StackPane createScaledContent(Parent content, Scene scene, double baseWidth, double baseHeight) {
+        StackPane wrapper = new StackPane(content);
+        wrapper.setPickOnBounds(false);
+        DoubleBinding safeScale = Bindings.createDoubleBinding(() -> {
+            double w = scene.getWidth();
+            double h = scene.getHeight();
+            double padX = Math.max(36, w * 0.045);
+            double padY = Math.max(24, h * 0.03);
+            double sw = (w - padX * 2) / baseWidth;
+            double sh = (h - padY * 2) / baseHeight;
+            return Math.min(1.0, Math.min(sw, sh));
+        }, scene.widthProperty(), scene.heightProperty());
+        content.scaleXProperty().bind(safeScale);
+        content.scaleYProperty().bind(content.scaleXProperty());
+        return wrapper;
+    }
+
+    public static void sizeStageToScreen(Stage stage) {
+        Rectangle2D bounds = Screen.getPrimary().getBounds();
+        stage.setX(bounds.getMinX());
+        stage.setY(bounds.getMinY());
+        stage.setWidth(bounds.getWidth());
+        stage.setHeight(bounds.getHeight());
+    }
+
+    public static void applyFullScreen(Stage stage) {
+        sizeStageToScreen(stage);
+        stage.setResizable(false);
+        stage.setFullScreenExitHint("");
+        stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+        javafx.application.Platform.runLater(() -> stage.setFullScreen(true));
+    }
 
     public static void fadeIn(Node node, int durationMs) {
         node.setOpacity(0);

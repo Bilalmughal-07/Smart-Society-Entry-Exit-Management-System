@@ -17,6 +17,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.concurrent.Task;
@@ -87,11 +88,7 @@ public class GuardDashboardController {
         colTTime.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getTimeWindow()));
         colTStatus.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getStatusString()));
 
-        List<User> residents = userDAO.getAllResidents();
-        for (User r : residents) {
-            residentCombo.getItems().add(r.getUserId() + " - " + r.getFullName() + " (" + r.getUnitNumber() + ")");
-        }
-
+        loadResidents();
         loadActiveEntries();
         loadTodayApprovals();
         loadGuardAlerts();
@@ -106,28 +103,6 @@ public class GuardDashboardController {
         for (Button button : animatedButtons) if (button != null) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
     }
-
-    // === Sidebar Navigation ===
-
-    @FXML private void showSection0() { showSection(0); }
-    @FXML private void showSection1() { showSection(1); }
-    @FXML private void showSection2() { showSection(2); }
-    @FXML private void showSection3() { showSection(3); }
-
-    private void showSection(int index) {
-        if (index == currentSection) return;
-        VBox[] sections = { section0, section1, section2, section3 };
-        AnimationUtils.switchSection(sections[currentSection], sections[index],
-                index > currentSection ? 1 : -1);
-        activateNav(index);
-        currentSection = index;
-    }
-
-    private void activateNav(int index) {
-        DashboardUiUtils.activateSidebarButton(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3 }, index);
-    }
-
-    // === QR Scan ===
 
     @FXML
     private void handleVerifyQR() {
@@ -365,22 +340,41 @@ public class GuardDashboardController {
         guardAlertsList.setPlaceholder(new Label("No new resident responses."));
     }
 
-    private void updateOccupancy() { occupancyLabel.setText("Occupancy: " + gateCtrl.getOccupancyCount()); }
+    private void updateOccupancy() {
+        occupancyLabel.setText("Occupancy: " + gateCtrl.getOccupancyCount());
+    }
+
+    @FXML
+    private void handleExitApp() {
+        Platform.exit();
+    }
+
+    private void loadResidents() {
+        List<User> residents = userDAO.getAllResidents();
+        residentCombo.getItems().clear();
+        for (User r : residents) {
+            residentCombo.getItems().add(r.getUserId() + " - " + r.getFullName() + " (" + r.getUnitNumber() + ")");
+        }
+    }
 
     @FXML
     private void handleLogout() {
         Stage stage = (Stage) welcomeLabel.getScene().getWindow();
         if (webcamTask != null && webcamTask.isRunning()) webcamTask.cancel();
-        AnimationUtils.sceneTransition(welcomeLabel.getScene().getRoot(), () -> {
+        Scene scene = welcomeLabel.getScene();
+        StackPane host = (StackPane) scene.getRoot();
+        javafx.scene.Node currentView = host.getChildren().isEmpty() ? scene.getRoot() : host.getChildren().get(0);
+        AnimationUtils.sceneTransition(currentView, () -> {
             try {
                 new LoginController().logout();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-                Scene scene = new Scene(loader.load(), 560, 660);
-                scene.setCamera(new PerspectiveCamera());
-                scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
+                javafx.scene.Parent root = loader.load();
+                StackPane nextView = AnimationUtils.createScaledContent(root, scene, 560, 660);
+                nextView.setOpacity(0.0);
                 stage.setTitle("Smart Society - Login");
-                stage.setScene(scene);
-                stage.centerOnScreen();
+                AnimationUtils.applyFullScreen(stage);
+                host.getChildren().setAll(nextView);
+                AnimationUtils.fadeIn(nextView, 260);
             } catch (Exception e) { e.printStackTrace(); }
         });
     }

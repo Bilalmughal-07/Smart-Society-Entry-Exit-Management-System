@@ -17,12 +17,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import javafx.application.Platform;
 
 public class ResidentDashboardController {
 
@@ -57,6 +59,7 @@ public class ResidentDashboardController {
     private final NotificationService notifService = NotificationService.getInstance();
     private UserSession session;
     private int pendingArrivalRequestId = -1;
+
 
     @FXML
     public void initialize() {
@@ -304,18 +307,27 @@ public class ResidentDashboardController {
     }
 
     @FXML
+    private void handleExitApp() {
+        Platform.exit();
+    }
+
+    @FXML
     private void handleLogout() {
         Stage stage = (Stage) welcomeLabel.getScene().getWindow();
-        AnimationUtils.sceneTransition(welcomeLabel.getScene().getRoot(), () -> {
+        Scene scene = welcomeLabel.getScene();
+        StackPane host = (StackPane) scene.getRoot();
+        javafx.scene.Node currentView = host.getChildren().isEmpty() ? scene.getRoot() : host.getChildren().get(0);
+        AnimationUtils.sceneTransition(currentView, () -> {
             try {
                 new LoginController().logout();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-                Scene scene = new Scene(loader.load(), 560, 660);
-                scene.setCamera(new PerspectiveCamera());
-                scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
+                javafx.scene.Parent root = loader.load();
+                StackPane nextView = AnimationUtils.createScaledContent(root, scene, 560, 660);
+                nextView.setOpacity(0.0);
                 stage.setTitle("Smart Society - Login");
-                stage.setScene(scene);
-                stage.centerOnScreen();
+                AnimationUtils.applyFullScreen(stage);
+                host.getChildren().setAll(nextView);
+                AnimationUtils.fadeIn(nextView, 260);
             } catch (Exception e) { e.printStackTrace(); }
         });
     }

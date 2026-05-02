@@ -2,12 +2,13 @@ package com.smartsociety.ui;
 
 import com.smartsociety.controller.LoginController;
 import com.smartsociety.model.UserSession;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -17,6 +18,7 @@ public class LoginUIController {
     @FXML private PasswordField passwordField;
     @FXML private Label statusLabel;
     @FXML private Button loginButton;
+    @FXML private Button exitButton;
     @FXML private VBox loginCard;
     @FXML private Pane ambientLayer;
 
@@ -28,6 +30,12 @@ public class LoginUIController {
         AnimationUtils.installAmbientMotion(ambientLayer);
         AnimationUtils.introAnimation(loginCard);
         AnimationUtils.addHoverLift(loginButton);
+        AnimationUtils.addHoverLift(exitButton);
+    }
+
+    @FXML
+    private void handleExitApp() {
+        Platform.exit();
     }
 
     @FXML
@@ -41,6 +49,7 @@ public class LoginUIController {
             return;
         }
 
+        setLoginEnabled(false);
         statusLabel.setText("Authenticating...");
         statusLabel.getStyleClass().setAll("label");
 
@@ -48,6 +57,7 @@ public class LoginUIController {
         if (session == null) {
             AnimationUtils.showAutoFadeStatus(statusLabel, "Invalid username or password.", "error-label");
             AnimationUtils.shakeNode(loginCard);
+            setLoginEnabled(true);
             return;
         }
 
@@ -69,31 +79,52 @@ public class LoginUIController {
                     break;
                 default:
                     statusLabel.setText("Unknown role.");
+                    setLoginEnabled(true);
                     return;
             }
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
+            Scene scene = loginButton.getScene();
+            StackPane host = (StackPane) scene.getRoot();
             final String fp = fxmlPath;
             final String t = title;
 
-            AnimationUtils.sceneTransition(loginButton.getScene().getRoot(), () -> {
+            javafx.scene.Node currentView = host.getChildren().isEmpty()
+                ? loginButton.getScene().getRoot()
+                : host.getChildren().get(0);
+
+            AnimationUtils.sceneTransition(currentView, () -> {
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource(fp));
-                    Scene scene = new Scene(loader.load(), 1100, 700);
-                    scene.setCamera(new PerspectiveCamera());
-                    scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
+                    javafx.scene.Parent root = loader.load();
+                    StackPane nextView = AnimationUtils.createScaledContent(root, scene, 1280, 780);
+                    nextView.setOpacity(0.0);
                     stage.setTitle("Smart Society - " + t);
-                    stage.setScene(scene);
-                    stage.centerOnScreen();
+                    AnimationUtils.applyFullScreen(stage);
+                    host.getChildren().setAll(nextView);
+                    AnimationUtils.fadeIn(nextView, 260);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             });
 
-        } catch (Exception e) {
-            statusLabel.setText("Error loading dashboard: " + e.getMessage());
+        } catch (Exception ex) {
+            statusLabel.setText("Error loading dashboard: " + ex.getMessage());
             statusLabel.getStyleClass().setAll("error-label");
-            e.printStackTrace();
+            ex.printStackTrace();
+            setLoginEnabled(true);
+        }
+    }
+
+    private void setLoginEnabled(boolean enabled) {
+        loginButton.setDisable(!enabled);
+        usernameField.setDisable(!enabled);
+        passwordField.setDisable(!enabled);
+        if (enabled) {
+            Platform.runLater(() -> {
+                usernameField.requestFocus();
+                usernameField.selectAll();
+            });
         }
     }
 }

@@ -3,6 +3,7 @@ package com.smartsociety.ui;
 import com.smartsociety.controller.AdminController;
 import com.smartsociety.controller.LoginController;
 import com.smartsociety.model.*;
+import javafx.concurrent.Task;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,8 +11,10 @@ import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.application.Platform;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -39,6 +42,7 @@ public class AdminDashboardController {
 
     private final AdminController adminCtrl = new AdminController();
     private UserSession session;
+
 
     @FXML
     public void initialize() {
@@ -226,18 +230,27 @@ public class AdminDashboardController {
     }
 
     @FXML
+    private void handleExitApp() {
+        Platform.exit();
+    }
+
+    @FXML
     private void handleLogout() {
         Stage stage = (Stage) welcomeLabel.getScene().getWindow();
-        AnimationUtils.sceneTransition(welcomeLabel.getScene().getRoot(), () -> {
+        Scene scene = welcomeLabel.getScene();
+        StackPane host = (StackPane) scene.getRoot();
+        javafx.scene.Node currentView = host.getChildren().isEmpty() ? scene.getRoot() : host.getChildren().get(0);
+        AnimationUtils.sceneTransition(currentView, () -> {
             try {
                 new LoginController().logout();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-                Scene scene = new Scene(loader.load(), 560, 660);
-                scene.setCamera(new PerspectiveCamera());
-                scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
+                javafx.scene.Parent root = loader.load();
+                StackPane nextView = AnimationUtils.createScaledContent(root, scene, 560, 660);
+                nextView.setOpacity(0.0);
                 stage.setTitle("Smart Society - Login");
-                stage.setScene(scene);
-                stage.centerOnScreen();
+                AnimationUtils.applyFullScreen(stage);
+                host.getChildren().setAll(nextView);
+                AnimationUtils.fadeIn(nextView, 260);
             } catch (Exception e) { e.printStackTrace(); }
         });
     }

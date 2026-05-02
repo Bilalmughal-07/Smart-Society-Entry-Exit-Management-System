@@ -54,6 +54,7 @@
             <!-- Sign Out -->
             <VBox styleClass="sidebar-footer">
                 <Button text="Sign Out" onAction="#handleLogout" styleClass="sidebar-logout" maxWidth="Infinity"/>
+                <Button text="Exit App" onAction="#handleExitApp" styleClass="sidebar-logout sidebar-exit" maxWidth="Infinity"/>
             </VBox>
         </VBox>
     </left>

@@ -35,7 +35,7 @@
             <StackPane>
                 <Rectangle styleClass="login-form-backdrop" width="330" height="250">
                     <effect>
-                        <GaussianBlur radius="9"/>
+                        <GaussianBlur radius="50"/>
                     </effect>
                 </Rectangle>
                 <VBox styleClass="login-form-shell" spacing="14" maxWidth="Infinity">
@@ -49,8 +49,10 @@
 
                     <Label fx:id="statusLabel" text="" wrapText="true"/>
 
-                    <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
+                        <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
                             maxWidth="Infinity" prefHeight="48"/>
+                        <Button fx:id="exitButton" text="Exit App" onAction="#handleExitApp"
+                            maxWidth="Infinity" prefHeight="44" styleClass="button-secondary"/>
 
                     <VBox alignment="CENTER" spacing="3">
                         <Label text="Default credentials" styleClass="muted-caption"/>

@@ -12,7 +12,7 @@ import com.smartsociety.model.UserSession;
 public class LoginController {
 
     private final UserDAO userDAO;
-    private static UserSession currentSession;
+    private static volatile UserSession currentSession;
 
     public LoginController() {
         this.userDAO = new UserDAO();

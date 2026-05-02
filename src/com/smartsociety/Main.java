@@ -4,8 +4,12 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCombination;
+import javafx.scene.Parent;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.geometry.Rectangle2D;
+import com.smartsociety.ui.AnimationUtils;
+import javafx.scene.layout.StackPane;
 
 /**
  * Main Application Entry Point
@@ -22,16 +26,20 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-            Scene scene = new Scene(loader.load(), 560, 660);
+            Parent loginRoot = loader.load();
+
+            AnimationUtils.sizeStageToScreen(primaryStage);
+            StackPane appContainer = new StackPane();
+            Scene scene = new Scene(appContainer, primaryStage.getWidth(), primaryStage.getHeight());
             scene.setCamera(new PerspectiveCamera());
             scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
 
+            StackPane loginView = AnimationUtils.createScaledContent(loginRoot, scene, 560, 660);
+            appContainer.getChildren().setAll(loginView);
+
             primaryStage.setTitle("Smart Society Entry Management System");
             primaryStage.setScene(scene);
-            primaryStage.setResizable(true);
-            primaryStage.setMinWidth(520);
-            primaryStage.setMinHeight(600);
-            primaryStage.centerOnScreen();
+            AnimationUtils.applyFullScreen(primaryStage);
             primaryStage.show();
 
             System.out.println("==============================================");
