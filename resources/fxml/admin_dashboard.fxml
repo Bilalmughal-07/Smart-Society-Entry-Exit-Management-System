@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
@@ -9,6 +10,9 @@
            styleClass="root liquid-root dashboard-root">
 
     <Pane fx:id="ambientLayer" mouseTransparent="true" styleClass="ambient-layer">
+        <effect>
+            <GaussianBlur radius="3.2"/>
+        </effect>
         <Circle radius="220" centerX="170" centerY="130" styleClass="ambient-orb ambient-orb-a"/>
         <Circle radius="260" centerX="1030" centerY="640" styleClass="ambient-orb ambient-orb-b"/>
         <Rectangle width="360" height="150" x="675" y="40" arcWidth="88" arcHeight="88"
@@ -16,6 +20,7 @@
         <Rectangle width="300" height="120" x="-65" y="535" arcWidth="78" arcHeight="78"
                    rotate="20" styleClass="ambient-slab ambient-slab-b"/>
     </Pane>
+    <Pane mouseTransparent="true" styleClass="ambient-frost"/>
 
     <BorderPane styleClass="app-shell">
 

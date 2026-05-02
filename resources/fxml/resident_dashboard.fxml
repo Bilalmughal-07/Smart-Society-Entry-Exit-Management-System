@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.shape.*?>
@@ -10,6 +11,9 @@
            styleClass="root liquid-root dashboard-root">
 
     <Pane fx:id="ambientLayer" mouseTransparent="true" styleClass="ambient-layer">
+        <effect>
+            <GaussianBlur radius="3.2"/>
+        </effect>
         <Circle radius="225" centerX="155" centerY="135" styleClass="ambient-orb ambient-orb-a"/>
         <Circle radius="260" centerX="1040" centerY="640" styleClass="ambient-orb ambient-orb-b"/>
         <Rectangle width="375" height="150" x="680" y="45" arcWidth="88" arcHeight="88"
@@ -17,6 +21,7 @@
         <Rectangle width="300" height="120" x="-65" y="540" arcWidth="78" arcHeight="78"
                    rotate="20" styleClass="ambient-slab ambient-slab-b"/>
     </Pane>
+    <Pane mouseTransparent="true" styleClass="ambient-frost"/>
 
     <BorderPane styleClass="app-shell">
 
@@ -165,7 +170,8 @@
                 <TableView fx:id="arrivalRequestsTable" VBox.vgrow="ALWAYS" maxWidth="Infinity">
                     <columns>
                         <TableColumn fx:id="colArrVisitor" text="Visitor" prefWidth="120"/>
-                        <TableColumn fx:id="colArrPurpose" text="Purpose" prefWidth="150"/>
+                        <TableColumn fx:id="colArrContact" text="Contact" prefWidth="110"/>
+                        <TableColumn fx:id="colArrPurpose" text="Purpose" prefWidth="140"/>
                         <TableColumn fx:id="colArrGuard" text="Guard" prefWidth="100"/>
                         <TableColumn fx:id="colArrTime" text="Time" prefWidth="140"/>
                     </columns>

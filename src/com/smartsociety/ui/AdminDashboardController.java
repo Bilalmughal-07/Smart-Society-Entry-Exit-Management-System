@@ -92,6 +92,9 @@ public class AdminDashboardController {
             }
         });
 
+        DashboardUiUtils.useConstrainedTableColumns(rulesTable, occupancyTable, violationsTable);
+        DashboardUiUtils.initializeSidebar(new Button[] { navBtn0, navBtn1, navBtn2 }, currentSection);
+
         loadRules();
         loadOccupancy();
         loadViolations();
@@ -118,11 +121,7 @@ public class AdminDashboardController {
     }
 
     private void activateNav(int index) {
-        Button[] btns = { navBtn0, navBtn1, navBtn2 };
-        for (int i = 0; i < btns.length; i++) {
-            btns[i].getStyleClass().remove("sidebar-item-active");
-            if (i == index) btns[i].getStyleClass().add("sidebar-item-active");
-        }
+        DashboardUiUtils.activateSidebarButton(new Button[] { navBtn0, navBtn1, navBtn2 }, index);
     }
 
     // === Access Rules ===

@@ -155,6 +155,7 @@ BEGIN
         guard_id        INT          NOT NULL,
         resident_id     INT          NOT NULL,
         visitor_name    VARCHAR(100) NOT NULL,
+        visitor_contact VARCHAR(50)  NULL,
         visitor_purpose VARCHAR(255) NULL,
         status          VARCHAR(20)  DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','REJECTED')),
         created_at      DATETIME     DEFAULT GETDATE(),
@@ -162,6 +163,12 @@ BEGIN
         CONSTRAINT FK_ArrivalReq_Guard    FOREIGN KEY (guard_id)    REFERENCES Users(user_id),
         CONSTRAINT FK_ArrivalReq_Resident FOREIGN KEY (resident_id) REFERENCES Users(user_id)
     );
+END
+GO
+
+IF COL_LENGTH('ArrivalRequests', 'visitor_contact') IS NULL
+BEGIN
+    ALTER TABLE ArrivalRequests ADD visitor_contact VARCHAR(50) NULL;
 END
 GO
 

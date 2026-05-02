@@ -5,6 +5,7 @@ import com.smartsociety.controller.GateController;
 import com.smartsociety.controller.LoginController;
 import com.smartsociety.dao.UserDAO;
 import com.smartsociety.model.*;
+import com.smartsociety.service.NotificationService;
 import com.smartsociety.service.QRCodeService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -28,7 +29,7 @@ public class GuardDashboardController {
 
     @FXML private Label welcomeLabel, avatarLabel, occupancyLabel, scanResultLabel;
     @FXML private Label verifyVisitorName, verifyDetails, walkInStatusLabel;
-    @FXML private TextField qrInputField, walkInVisitorName, walkInPurpose;
+    @FXML private TextField qrInputField, walkInVisitorName, walkInVisitorContact, walkInPurpose;
     @FXML private VBox verifyResultBox;
     @FXML private Button registerEntryBtn, reportViolationBtn;
 
@@ -39,6 +40,7 @@ public class GuardDashboardController {
     @FXML private Button retryBtn;
 
     @FXML private ComboBox<String> residentCombo;
+    @FXML private ListView<String> guardAlertsList;
 
     @FXML private TableView<EntryLog> activeEntriesTable;
     @FXML private TableColumn<EntryLog, String> colName, colType, colCat, colEntry, colDuration, colLogStatus;
@@ -55,6 +57,7 @@ public class GuardDashboardController {
     private Task<String> webcamTask;
     private final GateController gateCtrl = new GateController();
     private final ApprovalController approvalCtrl = new ApprovalController();
+    private final NotificationService notificationService = NotificationService.getInstance();
     private final UserDAO userDAO = new UserDAO();
     private UserSession session;
     private int verifiedApprovalId = -1;
@@ -91,8 +94,12 @@ public class GuardDashboardController {
 
         loadActiveEntries();
         loadTodayApprovals();
+        loadGuardAlerts();
         updateOccupancy();
         handleEnterManually();
+
+        DashboardUiUtils.useConstrainedTableColumns(activeEntriesTable, todayApprovalsTable);
+        DashboardUiUtils.initializeSidebar(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3 }, currentSection);
 
         AnimationUtils.installAmbientMotion(ambientLayer);
         Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, registerEntryBtn, reportViolationBtn, retryBtn };
@@ -117,11 +124,7 @@ public class GuardDashboardController {
     }
 
     private void activateNav(int index) {
-        Button[] btns = { navBtn0, navBtn1, navBtn2, navBtn3 };
-        for (int i = 0; i < btns.length; i++) {
-            btns[i].getStyleClass().remove("sidebar-item-active");
-            if (i == index) btns[i].getStyleClass().add("sidebar-item-active");
-        }
+        DashboardUiUtils.activateSidebarButton(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3 }, index);
     }
 
     // === QR Scan ===
@@ -325,16 +328,18 @@ public class GuardDashboardController {
     @FXML
     private void handleWalkInRequest() {
         String name = walkInVisitorName.getText().trim();
+        String contact = walkInVisitorContact.getText().trim();
         String purpose = walkInPurpose.getText().trim();
         String residentSelection = residentCombo.getValue();
-        if (name.isEmpty() || residentSelection == null) {
-            walkInStatusLabel.setText("Fill name and select resident."); return;
+        if (name.isEmpty() || contact.isEmpty() || residentSelection == null) {
+            walkInStatusLabel.setText("Fill name, contact number and select resident."); return;
         }
         int residentId = Integer.parseInt(residentSelection.split(" - ")[0]);
-        int reqId = approvalCtrl.createArrivalRequest(session.getUserId(), residentId, name, purpose);
+        int reqId = approvalCtrl.createArrivalRequest(session.getUserId(), residentId, name, contact, purpose);
         walkInStatusLabel.setText(reqId > 0 ? "Request sent to resident!" : "Failed.");
         walkInStatusLabel.getStyleClass().setAll(reqId > 0 ? "success-label" : "error-label");
-        walkInVisitorName.clear(); walkInPurpose.clear();
+        walkInVisitorName.clear(); walkInVisitorContact.clear(); walkInPurpose.clear();
+        loadGuardAlerts();
     }
 
     @FXML public void loadActiveEntries() {
@@ -345,6 +350,19 @@ public class GuardDashboardController {
     @FXML public void loadTodayApprovals() {
         List<Approval> approvals = approvalCtrl.getTodayApprovals();
         todayApprovalsTable.setItems(FXCollections.observableArrayList(approvals));
+    }
+
+    @FXML public void loadGuardAlerts() {
+        List<String[]> notifications = notificationService.getUnreadNotifications(session.getUserId());
+        javafx.collections.ObservableList<String> items = FXCollections.observableArrayList();
+        for (String[] notification : notifications) {
+            if (notification.length > 2 && "GUARD_ALERT".equals(notification[2])
+                    && notification[1].startsWith("Arrival request")) {
+                items.add(notification[1] + "  (" + notification[3] + ")");
+            }
+        }
+        guardAlertsList.setItems(items);
+        guardAlertsList.setPlaceholder(new Label("No new resident responses."));
     }
 
     private void updateOccupancy() { occupancyLabel.setText("Occupancy: " + gateCtrl.getOccupancyCount()); }

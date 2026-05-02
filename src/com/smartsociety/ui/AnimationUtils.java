@@ -4,7 +4,6 @@ import javafx.animation.*;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
 public class AnimationUtils {
@@ -109,38 +108,31 @@ public class AnimationUtils {
     }
 
     public static void addHoverLift(Node node) {
-        node.setRotationAxis(Rotate.Y_AXIS);
         node.setOnMouseEntered(e -> {
-            ScaleTransition scale = new ScaleTransition(Duration.millis(160), node);
-            scale.setToX(1.025);
-            scale.setToY(1.025);
+            ScaleTransition scale = new ScaleTransition(Duration.millis(130), node);
+            scale.setToX(1.012);
+            scale.setToY(1.012);
             scale.setInterpolator(Interpolator.EASE_OUT);
 
-            TranslateTransition lift = new TranslateTransition(Duration.millis(160), node);
-            lift.setToY(-4);
+            TranslateTransition lift = new TranslateTransition(Duration.millis(130), node);
+            lift.setToY(-2);
             lift.setInterpolator(Interpolator.EASE_OUT);
 
-            RotateTransition tilt = new RotateTransition(Duration.millis(160), node);
-            tilt.setToAngle(-2.5);
-            tilt.setInterpolator(Interpolator.EASE_OUT);
-
-            new ParallelTransition(scale, lift, tilt).play();
+            new ParallelTransition(scale, lift).play();
         });
+        node.setOnMousePressed(e -> node.setTranslateY(0));
+        node.setOnMouseReleased(e -> node.setTranslateY(node.isHover() ? -2 : 0));
         node.setOnMouseExited(e -> {
-            ScaleTransition scale = new ScaleTransition(Duration.millis(180), node);
+            ScaleTransition scale = new ScaleTransition(Duration.millis(150), node);
             scale.setToX(1.0);
             scale.setToY(1.0);
             scale.setInterpolator(Interpolator.EASE_OUT);
 
-            TranslateTransition lift = new TranslateTransition(Duration.millis(180), node);
+            TranslateTransition lift = new TranslateTransition(Duration.millis(150), node);
             lift.setToY(0);
             lift.setInterpolator(Interpolator.EASE_OUT);
 
-            RotateTransition tilt = new RotateTransition(Duration.millis(180), node);
-            tilt.setToAngle(0);
-            tilt.setInterpolator(Interpolator.EASE_OUT);
-
-            new ParallelTransition(scale, lift, tilt).play();
+            new ParallelTransition(scale, lift).play();
         });
     }
 
@@ -151,22 +143,22 @@ public class AnimationUtils {
             node.setMouseTransparent(true);
             node.setManaged(false);
 
-            TranslateTransition drift = new TranslateTransition(Duration.seconds(9 + index * 2), node);
-            drift.setByX(index % 2 == 0 ? 34 : -28);
-            drift.setByY(index % 2 == 0 ? -22 : 26);
+            TranslateTransition drift = new TranslateTransition(Duration.seconds(6 + index), node);
+            drift.setByX(index % 2 == 0 ? 58 : -50);
+            drift.setByY(index % 2 == 0 ? -38 : 44);
             drift.setAutoReverse(true);
             drift.setCycleCount(Animation.INDEFINITE);
             drift.setInterpolator(Interpolator.EASE_BOTH);
 
-            ScaleTransition breathe = new ScaleTransition(Duration.seconds(7 + index), node);
-            breathe.setToX(1.08);
-            breathe.setToY(1.08);
+            ScaleTransition breathe = new ScaleTransition(Duration.seconds(5 + index), node);
+            breathe.setToX(1.12);
+            breathe.setToY(1.12);
             breathe.setAutoReverse(true);
             breathe.setCycleCount(Animation.INDEFINITE);
             breathe.setInterpolator(Interpolator.EASE_BOTH);
 
-            RotateTransition rotate = new RotateTransition(Duration.seconds(20 + index * 3), node);
-            rotate.setByAngle(index % 2 == 0 ? 9 : -11);
+            RotateTransition rotate = new RotateTransition(Duration.seconds(13 + index * 2), node);
+            rotate.setByAngle(index % 2 == 0 ? 16 : -18);
             rotate.setAutoReverse(true);
             rotate.setCycleCount(Animation.INDEFINITE);
             rotate.setInterpolator(Interpolator.EASE_BOTH);

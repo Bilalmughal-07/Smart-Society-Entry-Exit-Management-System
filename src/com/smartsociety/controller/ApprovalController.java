@@ -120,8 +120,8 @@ public class ApprovalController {
     /**
      * UC-04: Approve Visitor on Arrival (SD-04 flow)
      */
-    public int createArrivalRequest(int guardId, int residentId, String visitorName, String purpose) {
-        int requestId = residentDAO.storeArrivalRequest(guardId, residentId, visitorName, purpose);
+    public int createArrivalRequest(int guardId, int residentId, String visitorName, String visitorContact, String purpose) {
+        int requestId = residentDAO.storeArrivalRequest(guardId, residentId, visitorName, visitorContact, purpose);
         if (requestId > 0) {
             notifService.sendArrivalNotification(residentId, visitorName, purpose);
         }
@@ -129,7 +129,33 @@ public class ApprovalController {
     }
 
     public boolean respondToArrivalRequest(int requestId, boolean approved) {
-        return residentDAO.updateArrivalRequestStatus(requestId, approved ? "APPROVED" : "REJECTED");
+        ResidentDAO.ArrivalRequest request = residentDAO.getArrivalRequestById(requestId);
+        if (request == null || !"PENDING".equals(request.getStatus())) {
+            return false;
+        }
+
+        String status = approved ? "APPROVED" : "REJECTED";
+        boolean updated = residentDAO.updateArrivalRequestStatus(requestId, status);
+        if (updated) {
+            notifService.notifyGuard(request.getGuardId(),
+                "Arrival request " + status.toLowerCase() + " for visitor '" + request.getVisitorName() + "'.");
+        }
+        return updated;
+    }
+
+    public boolean completeArrivalApproval(int requestId, Approval approval) {
+        ResidentDAO.ArrivalRequest request = residentDAO.getArrivalRequestById(requestId);
+        if (request == null || !"PENDING".equals(request.getStatus()) || approval == null) {
+            return false;
+        }
+
+        boolean updated = residentDAO.updateArrivalRequestStatus(requestId, "APPROVED");
+        if (updated) {
+            notifService.notifyGuard(request.getGuardId(),
+                "Arrival request approved for visitor '" + request.getVisitorName() +
+                "'. Approval ID: " + approval.getApprovalId() + ". QR: " + approval.getQrCode());
+        }
+        return updated;
     }
 
     public List<Approval> getApprovalsByResident(int residentId) {

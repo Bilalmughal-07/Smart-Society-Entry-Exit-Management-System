@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.shape.*?>
@@ -10,6 +11,9 @@
            styleClass="root liquid-root dashboard-root">
 
     <Pane fx:id="ambientLayer" mouseTransparent="true" styleClass="ambient-layer">
+        <effect>
+            <GaussianBlur radius="3.2"/>
+        </effect>
         <Circle radius="220" centerX="150" centerY="145" styleClass="ambient-orb ambient-orb-a"/>
         <Circle radius="250" centerX="1040" centerY="650" styleClass="ambient-orb ambient-orb-b"/>
         <Rectangle width="370" height="145" x="690" y="45" arcWidth="88" arcHeight="88"
@@ -17,6 +21,7 @@
         <Rectangle width="300" height="120" x="-55" y="535" arcWidth="78" arcHeight="78"
                    rotate="18" styleClass="ambient-slab ambient-slab-b"/>
     </Pane>
+    <Pane mouseTransparent="true" styleClass="ambient-frost"/>
 
     <BorderPane styleClass="app-shell">
 
@@ -135,6 +140,12 @@
                         <TextField fx:id="walkInVisitorName" promptText="Visitor's full name"/>
                     </VBox>
                     <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="CONTACT NUMBER" styleClass="field-label"/>
+                        <TextField fx:id="walkInVisitorContact" promptText="Phone number"/>
+                    </VBox>
+                </HBox>
+                <HBox spacing="16">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
                         <Label text="PURPOSE" styleClass="field-label"/>
                         <TextField fx:id="walkInPurpose" promptText="Purpose of visit"/>
                     </VBox>
@@ -145,6 +156,11 @@
                 </VBox>
                 <Label fx:id="walkInStatusLabel" text=""/>
                 <Button text="Send Request to Resident" onAction="#handleWalkInRequest" styleClass="button"/>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="Resident Responses" styleClass="title-label" HBox.hgrow="ALWAYS"/>
+                    <Button text="Refresh" onAction="#loadGuardAlerts" styleClass="button-secondary"/>
+                </HBox>
+                <ListView fx:id="guardAlertsList" prefHeight="130" maxWidth="Infinity"/>
             </VBox>
 
             <!-- Section 3: Today's Approvals -->

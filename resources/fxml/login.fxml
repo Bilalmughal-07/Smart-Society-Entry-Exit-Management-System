@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
@@ -31,23 +32,32 @@
 
             <Separator/>
 
-            <VBox spacing="12">
-                <Label text="USERNAME" styleClass="field-label"/>
-                <TextField fx:id="usernameField" promptText="Enter your username"/>
+            <StackPane>
+                <Rectangle styleClass="login-form-backdrop" width="330" height="250">
+                    <effect>
+                        <GaussianBlur radius="9"/>
+                    </effect>
+                </Rectangle>
+                <VBox styleClass="login-form-shell" spacing="14" maxWidth="Infinity">
+                    <VBox spacing="12">
+                        <Label text="USERNAME" styleClass="field-label"/>
+                        <TextField fx:id="usernameField" promptText="Enter your username"/>
 
-                <Label text="PASSWORD" styleClass="field-label"/>
-                <PasswordField fx:id="passwordField" promptText="Enter your password"/>
-            </VBox>
+                        <Label text="PASSWORD" styleClass="field-label"/>
+                        <PasswordField fx:id="passwordField" promptText="Enter your password"/>
+                    </VBox>
 
-            <Label fx:id="statusLabel" text="" wrapText="true"/>
+                    <Label fx:id="statusLabel" text="" wrapText="true"/>
 
-            <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
-                    maxWidth="Infinity" prefHeight="48"/>
+                    <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
+                            maxWidth="Infinity" prefHeight="48"/>
 
-            <VBox alignment="CENTER" spacing="3">
-                <Label text="Default credentials" styleClass="muted-caption"/>
-                <Label text="admin / guard1 / resident1  -  password123" styleClass="muted-caption faint-caption"/>
-            </VBox>
+                    <VBox alignment="CENTER" spacing="3">
+                        <Label text="Default credentials" styleClass="muted-caption"/>
+                        <Label text="admin / guard1 / resident1  -  password123" styleClass="muted-caption faint-caption"/>
+                    </VBox>
+                </VBox>
+            </StackPane>
         </VBox>
     </VBox>
 </StackPane>

@@ -39,7 +39,7 @@ public class ResidentDashboardController {
     @FXML private TableColumn<Approval, String> colVisitor, colCategory, colDate, colTime, colQR, colStatus;
 
     @FXML private TableView<String[]> arrivalRequestsTable;
-    @FXML private TableColumn<String[], String> colArrVisitor, colArrPurpose, colArrGuard, colArrTime;
+    @FXML private TableColumn<String[], String> colArrVisitor, colArrContact, colArrPurpose, colArrGuard, colArrTime;
 
     @FXML private TableView<AccessRule> rulesTable;
     @FXML private TableColumn<AccessRule, String> colRuleName, colRuleCat, colRuleTime, colRuleDuration, colRuleVisitors;
@@ -56,6 +56,7 @@ public class ResidentDashboardController {
     private final ApprovalController approvalCtrl = new ApprovalController();
     private final NotificationService notifService = NotificationService.getInstance();
     private UserSession session;
+    private int pendingArrivalRequestId = -1;
 
     @FXML
     public void initialize() {
@@ -76,9 +77,10 @@ public class ResidentDashboardController {
         colStatus.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getStatusString()));
 
         colArrVisitor.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 1 ? cd.getValue()[1] : ""));
-        colArrPurpose.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 2 ? cd.getValue()[2] : ""));
-        colArrGuard.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 3 ? cd.getValue()[3] : ""));
-        colArrTime.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 4 ? cd.getValue()[4] : ""));
+        colArrContact.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 2 ? cd.getValue()[2] : ""));
+        colArrPurpose.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 3 ? cd.getValue()[3] : ""));
+        colArrGuard.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 4 ? cd.getValue()[4] : ""));
+        colArrTime.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().length > 5 ? cd.getValue()[5] : ""));
 
         colRuleName.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getRuleName()));
         colRuleCat.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getCategory()));
@@ -90,6 +92,9 @@ public class ResidentDashboardController {
         loadArrivalRequests();
         loadNotifications();
         loadRules();
+
+        DashboardUiUtils.useConstrainedTableColumns(approvalsTable, arrivalRequestsTable, rulesTable);
+        DashboardUiUtils.initializeSidebar(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4 }, currentSection);
 
         javafx.beans.value.ChangeListener<String> timeCalcListener = (obs, oldVal, newVal) -> updateEndTime();
         timeHourField.textProperty().addListener(timeCalcListener);
@@ -133,11 +138,7 @@ public class ResidentDashboardController {
     }
 
     private void activateNav(int index) {
-        Button[] btns = { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4 };
-        for (int i = 0; i < btns.length; i++) {
-            btns[i].getStyleClass().remove("sidebar-item-active");
-            if (i == index) btns[i].getStyleClass().add("sidebar-item-active");
-        }
+        DashboardUiUtils.activateSidebarButton(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4 }, index);
     }
 
     // === Time calculation ===
@@ -186,7 +187,16 @@ public class ResidentDashboardController {
 
             Approval approval = approvalCtrl.createApproval(session.getUserId(), name, contact, category, purpose, date, start, end, duration);
             if (approval != null) {
-                showStatus("Approval created successfully!", "success-label");
+                boolean arrivalRequestCompleted = true;
+                if (pendingArrivalRequestId > 0) {
+                    arrivalRequestCompleted = approvalCtrl.completeArrivalApproval(pendingArrivalRequestId, approval);
+                    pendingArrivalRequestId = -1;
+                    loadArrivalRequests();
+                }
+                showStatus(arrivalRequestCompleted
+                    ? "Approval created successfully!"
+                    : "Approval created, but the arrival request could not be updated.",
+                    arrivalRequestCompleted ? "success-label" : "warning-label");
                 qrCodeLabel.setText(approval.getQrCode());
                 javafx.scene.image.Image qrImg = com.smartsociety.service.QRCodeService.getInstance().generateQRImage(approval.getQrCode());
                 if (qrImg != null) qrImageView.setImage(qrImg);
@@ -217,6 +227,7 @@ public class ResidentDashboardController {
     }
 
     @FXML private void handleClear() {
+        pendingArrivalRequestId = -1;
         clearInputs();
         qrDisplayBox.setVisible(false); qrDisplayBox.setManaged(false); qrImageView.setImage(null);
     }
@@ -233,8 +244,23 @@ public class ResidentDashboardController {
     private void handleApproveArrival() {
         String[] selected = arrivalRequestsTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
-        approvalCtrl.respondToArrivalRequest(Integer.parseInt(selected[0]), true);
-        loadArrivalRequests();
+        pendingArrivalRequestId = Integer.parseInt(selected[0]);
+
+        visitorNameField.setText(selected.length > 1 ? selected[1] : "");
+        visitorContactField.setText(selected.length > 2 ? selected[2] : "");
+        purposeField.setText(selected.length > 3 ? selected[3] : "");
+        visitDatePicker.setValue(LocalDate.now());
+
+        LocalTime now = LocalTime.now();
+        timeHourField.setText(String.format("%02d", now.getHour()));
+        timeMinField.setText(String.format("%02d", now.getMinute()));
+        durationField.clear();
+        timeEndField.setText("--:--");
+        categoryCombo.getSelectionModel().clearSelection();
+        qrDisplayBox.setVisible(false); qrDisplayBox.setManaged(false); qrImageView.setImage(null);
+
+        showSection(0);
+        showStatus("Walk-in visitor details loaded. Select a category and enter visit duration.", "warning-label");
     }
 
     @FXML
