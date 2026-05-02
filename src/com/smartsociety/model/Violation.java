@@ -29,6 +29,8 @@ public class Violation {
     private String adminName;
     private String category;
     private long overstayMinutes;
+    private Integer residentId;
+    private String residentName;
 
     // Default constructor
     public Violation() {
@@ -95,4 +97,9 @@ public class Violation {
     public String getViolationTypeString() { return violationType != null ? violationType.name() : ""; }
     public String getStatusString() { return status != null ? status.name() : "PENDING"; }
     public String getActionString() { return actionTaken != null ? actionTaken.name() : "None"; }
+    
+    public Integer getResidentId() { return residentId; }
+    public void setResidentId(Integer residentId) { this.residentId = residentId; }
+    public String getResidentName() { return residentName; }
+    public void setResidentName(String residentName) { this.residentName = residentName; }
 }

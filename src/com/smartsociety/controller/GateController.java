@@ -33,7 +33,10 @@ public class GateController {
         if (approvalId < 0) return "INVALID_QR";
         Approval a = approvalDAO.getApprovalById(approvalId);
         if (a == null) return "NOT_FOUND";
-        if (a.getStatusEnum() != Approval.Status.APPROVED) return "STATUS_" + a.getStatusString();
+        if (a.getStatusEnum() != Approval.Status.APPROVED) {
+            if (a.getStatusEnum() == Approval.Status.ENTERED) return "STATUS_ENTERED:" + approvalId;
+            return "STATUS_" + a.getStatusString();
+        }
         if (!approvalDAO.validateTimeWindow(a)) return "OUTSIDE_TIME_WINDOW";
         return "VALID:" + approvalId;
     }
@@ -153,6 +156,7 @@ public class GateController {
         return log;
     }
 
+
     // Register exit by searching for active entry log by log ID
     public EntryLog registerExitByLogId(int logId) {
         List<EntryLog> actives = entryLogDAO.getActiveEntries();
@@ -171,6 +175,30 @@ public class GateController {
             }
         }
         return null;
+    }
+
+    public boolean reportQRSharingViolation(int approvalId, int guardId) {
+        Approval a = approvalDAO.getApprovalById(approvalId);
+        if (a == null) return false;
+
+        EntryLog log = null;
+        List<EntryLog> actives = entryLogDAO.getActiveEntries();
+        for (EntryLog el : actives) {
+            if (el.getPersonType() == EntryLog.PersonType.VISITOR && el.getApprovalId() != null && el.getApprovalId() == approvalId) {
+                log = el; break;
+            }
+        }
+        
+        int logId = log != null ? log.getLogId() : 0; 
+
+        ViolationDAO vDao = new ViolationDAO();
+        Violation v1 = new Violation();
+        v1.setLogId(logId);
+        v1.setViolationType(Violation.ViolationType.UNAUTHORIZED);
+        v1.setDescription("QR sharing violation. Visitor: " + a.getVisitorName() + " (Resident: " + a.getResidentName() + ")");
+        vDao.createViolation(v1);
+
+        return true;
     }
 
     public List<EntryLog> getActiveEntries() { return entryLogDAO.getActiveEntries(); }

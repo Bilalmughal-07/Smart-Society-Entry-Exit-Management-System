@@ -62,6 +62,21 @@ public class QRCodeService {
     }
 
     /**
+     * Generates a graphical JavaFX Image of the given QR code string.
+     */
+    public javafx.scene.image.Image generateQRImage(String qrData) {
+        try {
+            com.google.zxing.qrcode.QRCodeWriter qrCodeWriter = new com.google.zxing.qrcode.QRCodeWriter();
+            com.google.zxing.common.BitMatrix bitMatrix = qrCodeWriter.encode(qrData, com.google.zxing.BarcodeFormat.QR_CODE, 200, 200);
+            java.awt.image.BufferedImage bufferedImage = com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(bitMatrix);
+            return javafx.embed.swing.SwingFXUtils.toFXImage(bufferedImage, null);
+        } catch (Exception e) {
+            System.err.println("[QRCodeService] Error generating graphical QR: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Decodes a QR code string to extract the approval ID.
      * As per SD-07: decodeQRCode(qrData) → return approvalID
      *
@@ -131,7 +146,7 @@ public class QRCodeService {
     }
 
     /**
-     * Attempts to scan a QR code using the laptop webcam.
+     * Attempts to scan a QR code using the laptop webcam synchronously.
      * Uses Sarxos Webcam API to capture a frame and ZXing to decode.
      * Falls back to null if webcam/libraries are unavailable.
      *
@@ -147,6 +162,7 @@ public class QRCodeService {
             }
 
             if (!webcam.isOpen()) {
+                webcam.setViewSize(new java.awt.Dimension(320, 240));
                 webcam.open();
             }
 
@@ -155,18 +171,7 @@ public class QRCodeService {
                 return null;
             }
 
-            // Use ZXing to decode the QR from the captured image
-            com.google.zxing.LuminanceSource source =
-                    new com.google.zxing.client.j2se.BufferedImageLuminanceSource(image);
-            com.google.zxing.BinaryBitmap bitmap =
-                    new com.google.zxing.BinaryBitmap(new com.google.zxing.common.HybridBinarizer(source));
-
-            com.google.zxing.Result result =
-                    new com.google.zxing.MultiFormatReader().decode(bitmap);
-
-            String decoded = result.getText();
-            System.out.println("[QRCodeService] Scanned QR from webcam: " + decoded);
-            return decoded;
+            return decodeImage(image);
 
         } catch (NoClassDefFoundError e) {
             // Sarxos or ZXing libraries not available
@@ -179,6 +184,34 @@ public class QRCodeService {
     }
 
     /**
+     * Decodes a QR code from a given BufferedImage using ZXing.
+     * @param image the BufferedImage to decode
+     * @return the decoded text or null if not found
+     */
+    public String decodeImage(BufferedImage image) {
+        if (image == null) return null;
+        try {
+            com.google.zxing.LuminanceSource source =
+                    new com.google.zxing.client.j2se.BufferedImageLuminanceSource(image);
+            com.google.zxing.BinaryBitmap bitmap =
+                    new com.google.zxing.BinaryBitmap(new com.google.zxing.common.HybridBinarizer(source));
+
+            com.google.zxing.Result result =
+                    new com.google.zxing.MultiFormatReader().decode(bitmap);
+
+            String decoded = result.getText();
+            System.out.println("[QRCodeService] Scanned QR from image: " + decoded);
+            return decoded;
+        } catch (com.google.zxing.NotFoundException e) {
+            // No QR code found in the image, expected in continuous scanning
+            return null;
+        } catch (Exception e) {
+            // Other decoding exceptions
+            return null;
+        }
+    }
+
+    /**
      * Gets a BufferedImage of the webcam feed for display purposes.
      * Returns null if webcam is not available.
      */
@@ -186,7 +219,10 @@ public class QRCodeService {
         try {
             com.github.sarxos.webcam.Webcam webcam = com.github.sarxos.webcam.Webcam.getDefault();
             if (webcam != null) {
-                if (!webcam.isOpen()) webcam.open();
+                if (!webcam.isOpen()) {
+                    webcam.setViewSize(new java.awt.Dimension(320, 240));
+                    webcam.open();
+                }
                 return webcam.getImage();
             }
         } catch (NoClassDefFoundError e) {
@@ -195,5 +231,21 @@ public class QRCodeService {
             System.err.println("[QRCodeService] Error getting webcam frame: " + e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Closes the webcam if it is open.
+     */
+    public void closeWebcam() {
+        try {
+            com.github.sarxos.webcam.Webcam webcam = com.github.sarxos.webcam.Webcam.getDefault();
+            if (webcam != null && webcam.isOpen()) {
+                webcam.close();
+            }
+        } catch (NoClassDefFoundError e) {
+            // Libraries not available
+        } catch (Exception e) {
+            System.err.println("[QRCodeService] Error closing webcam: " + e.getMessage());
+        }
     }
 }

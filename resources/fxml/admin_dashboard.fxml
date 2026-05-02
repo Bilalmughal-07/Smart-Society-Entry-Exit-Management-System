@@ -120,6 +120,8 @@
                             <TableColumn fx:id="colViolId" text="ID" prefWidth="50"/>
                             <TableColumn fx:id="colViolType" text="Type" prefWidth="100"/>
                             <TableColumn fx:id="colViolPerson" text="Person" prefWidth="120"/>
+                            <TableColumn fx:id="colViolResidentId" text="Resident ID" prefWidth="80"/>
+                            <TableColumn fx:id="colViolResidentName" text="Host Resident" prefWidth="120"/>
                             <TableColumn fx:id="colViolDesc" text="Description" prefWidth="200"/>
                             <TableColumn fx:id="colViolStatus" text="Status" prefWidth="80"/>
                             <TableColumn fx:id="colViolAction" text="Action" prefWidth="80"/>

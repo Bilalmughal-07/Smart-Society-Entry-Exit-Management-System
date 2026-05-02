@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.GuardDashboardController"
             styleClass="root">
@@ -22,13 +23,33 @@
 
             <!-- Tab 1: QR Scan & Verify -->
             <Tab text="🔍 Scan QR Code">
-                <VBox spacing="16" styleClass="glass-panel">
+                <VBox spacing="16" styleClass="glass-panel" alignment="TOP_CENTER">
                     <Label text="Verify Visitor / Resident QR Code" styleClass="section-label"/>
-                    <HBox spacing="12" alignment="CENTER_LEFT">
+                    
+                    <!-- Camera UI Box -->
+                    <VBox fx:id="cameraUiBox" spacing="10" alignment="CENTER" visible="true" managed="true">
+                        <Label fx:id="instructionLabel" text="Please hold up QR" style="-fx-font-size: 14px; -fx-text-fill: #94a3b8;"/>
+                        <Label fx:id="timerLabel" text="15s" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #facc15;"/>
+                        
+                        <StackPane style="-fx-border-color: #38bdf8; -fx-border-width: 2px; -fx-border-radius: 8px;">
+                            <ImageView fx:id="cameraFeedView" fitWidth="320" fitHeight="240" preserveRatio="true"/>
+                            <!-- Alignment Box Overlay -->
+                            <javafx.scene.shape.Rectangle width="200" height="200" fill="transparent" stroke="#22c55e" strokeWidth="3" strokeType="INSIDE"/>
+                        </StackPane>
+                        
+                        <Label fx:id="warningLabel" text="QR Not Detected" styleClass="error-label" visible="false" managed="false"/>
+                        <Button fx:id="retryBtn" text="🔄 Retry Scan" onAction="#handleRetryScan" styleClass="button-warning" visible="false" managed="false"/>
+                        
+                        <Button text="Enter Manually" onAction="#handleEnterManually" styleClass="button-secondary"/>
+                    </VBox>
+
+                    <!-- Manual Input Box -->
+                    <HBox fx:id="manualInputBox" spacing="12" alignment="CENTER_LEFT" visible="false" managed="false">
                         <TextField fx:id="qrInputField" promptText="Enter or scan QR code data" HBox.hgrow="ALWAYS"/>
                         <Button text="🔍 Verify" onAction="#handleVerifyQR" styleClass="button"/>
-                        <Button text="📷 Scan Webcam" onAction="#handleWebcamScan" styleClass="button-secondary"/>
+                        <Button text="📷 Scan QR" onAction="#handleStartWebcam" styleClass="button-secondary"/>
                     </HBox>
+
                     <Label fx:id="scanResultLabel" text="" wrapText="true"/>
 
                     <!-- Verification Result Panel -->
@@ -37,6 +58,7 @@
                         <Label fx:id="verifyDetails" text="" wrapText="true"/>
                         <HBox spacing="12">
                             <Button fx:id="registerEntryBtn" text="✅ Register Entry" onAction="#handleRegisterEntry" styleClass="button-success"/>
+                            <Button fx:id="reportViolationBtn" text="🚨 Report QR Sharing" onAction="#handleReportViolation" styleClass="button-danger" visible="false" managed="false"/>
                         </HBox>
                     </VBox>
                 </VBox>
@@ -61,9 +83,6 @@
                         </columns>
                     </TableView>
 
-                    <HBox spacing="12">
-                        <Button text="📤 Register Exit" onAction="#handleRegisterExit" styleClass="button-warning"/>
-                    </HBox>
                 </VBox>
             </Tab>
 

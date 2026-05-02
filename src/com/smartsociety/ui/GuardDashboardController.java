@@ -13,8 +13,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
+import javafx.concurrent.Task;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import java.util.List;
+import java.awt.image.BufferedImage;
 
 /**
  * UI Controller for Guard Dashboard.
@@ -25,8 +31,20 @@ public class GuardDashboardController {
     @FXML private Label verifyVisitorName, verifyDetails, walkInStatusLabel;
     @FXML private TextField qrInputField, walkInVisitorName, walkInPurpose;
     @FXML private VBox verifyResultBox;
-    @FXML private Button registerEntryBtn;
+    @FXML private Button registerEntryBtn, reportViolationBtn;
+
+    // Webcam UI elements
+    @FXML private VBox cameraUiBox;
+    @FXML private HBox manualInputBox;
+    @FXML private ImageView cameraFeedView;
+    @FXML private Label instructionLabel;
+    @FXML private Label timerLabel;
+    @FXML private Label warningLabel;
+    @FXML private Button retryBtn;
+
     @FXML private ComboBox<String> residentCombo;
+    
+    private Task<String> webcamTask;
 
     // Active entries table
     @FXML private TableView<EntryLog> activeEntriesTable;
@@ -75,6 +93,9 @@ public class GuardDashboardController {
         loadActiveEntries();
         loadTodayApprovals();
         updateOccupancy();
+        
+        // Default to manual mode instead of starting webcam automatically
+        handleEnterManually();
     }
 
     @FXML
@@ -97,8 +118,20 @@ public class GuardDashboardController {
                     "\nResident: " + a.getResidentName() + " | Unit: " + a.getResidentUnit());
                 verifyResultBox.setVisible(true); verifyResultBox.setManaged(true);
                 registerEntryBtn.setText("✅ Register Visitor Entry");
+                reportViolationBtn.setVisible(false); reportViolationBtn.setManaged(false);
                 scanResultLabel.setText("✅ Visitor approval verified!");
                 scanResultLabel.getStyleClass().setAll("success-label");
+            } else if (result.startsWith("STATUS_ENTERED:")) {
+                verifiedApprovalId = Integer.parseInt(result.split(":")[1]);
+                Approval a = approvalCtrl.getApprovalById(verifiedApprovalId);
+                verifyVisitorName.setText("Visitor: " + a.getVisitorName() + " (ALREADY INSIDE)");
+                verifyDetails.setText("Category: " + a.getCategory() + " | Time: " + a.getTimeWindow() +
+                    "\nResident: " + a.getResidentName() + " | Unit: " + a.getResidentUnit());
+                verifyResultBox.setVisible(true); verifyResultBox.setManaged(true);
+                registerEntryBtn.setText("📤 Register Exit");
+                reportViolationBtn.setVisible(true); reportViolationBtn.setManaged(true);
+                scanResultLabel.setText("⚠️ Visitor already inside. Register exit or report QR sharing.");
+                scanResultLabel.getStyleClass().setAll("warning-label");
             } else {
                 verifyResultBox.setVisible(false); verifyResultBox.setManaged(false);
                 scanResultLabel.setText("❌ Verification failed: " + result);
@@ -151,9 +184,15 @@ public class GuardDashboardController {
     @FXML
     private void handleRegisterEntry() {
         if ("APPROVAL".equals(verifiedQrType) && verifiedApprovalId > 0) {
-            EntryLog log = gateCtrl.registerVisitorEntry(verifiedApprovalId, session.getUserId());
-            scanResultLabel.setText(log != null ? "✅ Visitor entry registered!" : "❌ Entry registration failed.");
-            scanResultLabel.getStyleClass().setAll(log != null ? "success-label" : "error-label");
+            if (registerEntryBtn.getText().contains("Exit")) {
+                EntryLog result = gateCtrl.registerVisitorExit(verifiedApprovalId);
+                scanResultLabel.setText(result != null ? "📤 Exit registered. Duration: " + result.getDurationFormatted() : "❌ Exit failed.");
+                scanResultLabel.getStyleClass().setAll(result != null ? "success-label" : "error-label");
+            } else {
+                EntryLog log = gateCtrl.registerVisitorEntry(verifiedApprovalId, session.getUserId());
+                scanResultLabel.setText(log != null ? "✅ Visitor entry registered!" : "❌ Entry registration failed.");
+                scanResultLabel.getStyleClass().setAll(log != null ? "success-label" : "error-label");
+            }
         } else if ("RESIDENT".equals(verifiedQrType)) {
             User r = userDAO.getUserByQRCode(verifiedQrData);
             if (r == null) { int rId = QRCodeService.getInstance().decodeResidentQR(verifiedQrData); r = userDAO.getUserById(rId); }
@@ -171,20 +210,128 @@ public class GuardDashboardController {
     }
 
     @FXML
-    private void handleRegisterExit() {
-        EntryLog selected = activeEntriesTable.getSelectionModel().getSelectedItem();
-        if (selected == null) { scanResultLabel.setText("Select an entry to register exit."); return; }
-        EntryLog result = gateCtrl.registerExitByLogId(selected.getLogId());
-        scanResultLabel.setText(result != null ? "📤 Exit registered. Duration: " + result.getDurationFormatted() : "❌ Exit failed.");
-        scanResultLabel.getStyleClass().setAll(result != null ? "success-label" : "error-label");
-        loadActiveEntries(); updateOccupancy();
+    private void handleReportViolation() {
+        if ("APPROVAL".equals(verifiedQrType) && verifiedApprovalId > 0) {
+            boolean success = gateCtrl.reportQRSharingViolation(verifiedApprovalId, session.getUserId());
+            scanResultLabel.setText(success ? "🚨 QR Sharing Violation reported!" : "❌ Failed to report violation.");
+            scanResultLabel.getStyleClass().setAll(success ? "success-label" : "error-label");
+            verifyResultBox.setVisible(false); verifyResultBox.setManaged(false);
+            loadActiveEntries(); updateOccupancy(); loadTodayApprovals();
+        }
+    }
+
+    private void startWebcamScan() {
+        cameraUiBox.setVisible(true);
+        cameraUiBox.setManaged(true);
+        manualInputBox.setVisible(false);
+        manualInputBox.setManaged(false);
+        warningLabel.setVisible(false);
+        warningLabel.setManaged(false);
+        retryBtn.setVisible(false);
+        retryBtn.setManaged(false);
+        timerLabel.setText("15s");
+        instructionLabel.setText("Please hold up QR");
+        
+        if (webcamTask != null && webcamTask.isRunning()) {
+            webcamTask.cancel();
+        }
+        
+        webcamTask = new Task<String>() {
+            @Override
+            protected String call() throws Exception {
+                long startTime = System.currentTimeMillis();
+                long timeout = 15000; // 15 seconds
+                QRCodeService qrService = QRCodeService.getInstance();
+                
+                while (System.currentTimeMillis() - startTime < timeout) {
+                    if (isCancelled()) return null;
+                    
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    int remainingSec = (int) ((timeout - elapsed) / 1000);
+                    Platform.runLater(() -> timerLabel.setText(remainingSec + "s"));
+                    
+                    BufferedImage frame = qrService.getWebcamFrame();
+                    if (frame != null) {
+                        try {
+                            Image fxImage = javafx.embed.swing.SwingFXUtils.toFXImage(frame, null);
+                            Platform.runLater(() -> cameraFeedView.setImage(fxImage));
+                        } catch (Exception e) {
+                            // Ignored if SwingFXUtils is missing
+                        }
+                        
+                        String result = qrService.decodeImage(frame);
+                        if (result != null) {
+                            return result;
+                        }
+                    }
+                    Thread.sleep(100);
+                }
+                return null; // timeout
+            }
+        };
+
+        webcamTask.setOnSucceeded(e -> {
+            QRCodeService.getInstance().closeWebcam();
+            String result = webcamTask.getValue();
+            if (result != null) {
+                // Found QR
+                qrInputField.setText(result);
+                handleEnterManually(); // Switch to manual UI to show result
+                handleVerifyQR();
+            } else {
+                // Timeout
+                showWarning();
+            }
+        });
+
+        webcamTask.setOnCancelled(e -> {
+            QRCodeService.getInstance().closeWebcam();
+            cameraFeedView.setImage(null);
+        });
+
+        webcamTask.setOnFailed(e -> {
+            QRCodeService.getInstance().closeWebcam();
+            cameraFeedView.setImage(null);
+        });
+
+        Thread thread = new Thread(webcamTask);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void showWarning() {
+        instructionLabel.setText("");
+        timerLabel.setText("0s");
+        warningLabel.setVisible(true);
+        warningLabel.setManaged(true);
+        retryBtn.setVisible(true);
+        retryBtn.setManaged(true);
+        
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(500), warningLabel);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
     }
 
     @FXML
-    private void handleWebcamScan() {
-        String qr = QRCodeService.getInstance().scanQRFromWebcam();
-        if (qr != null) { qrInputField.setText(qr); handleVerifyQR(); }
-        else { scanResultLabel.setText("Webcam scan unavailable. Please enter QR code manually."); scanResultLabel.getStyleClass().setAll("warning-label"); }
+    private void handleEnterManually() {
+        if (webcamTask != null && webcamTask.isRunning()) {
+            webcamTask.cancel();
+        }
+        cameraUiBox.setVisible(false);
+        cameraUiBox.setManaged(false);
+        manualInputBox.setVisible(true);
+        manualInputBox.setManaged(true);
+    }
+
+    @FXML
+    private void handleRetryScan() {
+        startWebcamScan();
+    }
+
+    @FXML
+    private void handleStartWebcam() {
+        startWebcamScan();
     }
 
     @FXML
@@ -215,6 +362,9 @@ public class GuardDashboardController {
     @FXML
     private void handleLogout() {
         try {
+            if (webcamTask != null && webcamTask.isRunning()) {
+                webcamTask.cancel();
+            }
             new LoginController().logout();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Scene scene = new Scene(loader.load(), 500, 600);

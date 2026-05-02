@@ -30,14 +30,25 @@ public class AdminController {
 
     public int defineNewRule(AccessRule rule) {
         if (!ruleDAO.validateRules(rule)) {
-            System.err.println("[AdminController] Rule validation failed."); return -1;
+            throw new IllegalArgumentException("Invalid rule data. Ensure times are correct and duration > 0.");
+        }
+        if (ruleDAO.isDuplicateRule(rule)) {
+            throw new IllegalArgumentException("An identical rule already exists for this category.");
         }
         int id = ruleDAO.saveRule(rule);
         if (id > 0) ruleDAO.activateRule(id);
         return id;
     }
 
-    public boolean updateRule(AccessRule rule) { return ruleDAO.updateRule(rule); }
+    public boolean updateRule(AccessRule rule) {
+        if (!ruleDAO.validateRules(rule)) {
+            throw new IllegalArgumentException("Invalid rule data. Ensure times are correct and duration > 0.");
+        }
+        if (ruleDAO.isDuplicateRule(rule)) {
+            throw new IllegalArgumentException("An identical rule already exists for this category.");
+        }
+        return ruleDAO.updateRule(rule); 
+    }
     public boolean deleteRule(int ruleId) { return ruleDAO.deleteRule(ruleId); }
 
     // === UC-13: Monitor Real-Time Occupancy (SD-13) ===

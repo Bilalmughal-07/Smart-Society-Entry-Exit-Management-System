@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.ResidentDashboardController"
             styleClass="root">
@@ -64,12 +65,16 @@
 
                         <HBox spacing="16">
                             <VBox spacing="6" HBox.hgrow="ALWAYS">
-                                <Label text="Time From *"/>
-                                <TextField fx:id="timeStartField" promptText="HH:MM (e.g. 09:00)"/>
+                                <Label text="Arrival Time *"/>
+                                <HBox spacing="8" alignment="CENTER_LEFT">
+                                    <TextField fx:id="timeHourField" promptText="HH" prefWidth="60"/>
+                                    <Label text=":" styleClass="label"/>
+                                    <TextField fx:id="timeMinField" promptText="MM" prefWidth="60"/>
+                                </HBox>
                             </VBox>
                             <VBox spacing="6" HBox.hgrow="ALWAYS">
-                                <Label text="Time To *"/>
-                                <TextField fx:id="timeEndField" promptText="HH:MM (e.g. 17:00)"/>
+                                <Label text="Exit Time (Auto-calculated)"/>
+                                <TextField fx:id="timeEndField" editable="false" promptText="--:--" style="-fx-text-fill: #9ca3af;"/>
                             </VBox>
                         </HBox>
 
@@ -84,6 +89,7 @@
                         <VBox fx:id="qrDisplayBox" spacing="8" alignment="CENTER" visible="false" managed="false">
                             <Separator/>
                             <Label text="QR Code Generated" styleClass="success-label"/>
+                            <ImageView fx:id="qrImageView" fitWidth="150" fitHeight="150" preserveRatio="true"/>
                             <Label fx:id="qrCodeLabel" text="" style="-fx-font-size: 16px; -fx-text-fill: #22d3ee; -fx-font-family: monospace;"/>
                         </VBox>
                     </VBox>
@@ -147,6 +153,27 @@
                     </HBox>
 
                     <ListView fx:id="notificationsList" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </Tab>
+
+            <!-- Tab 5: Access Rules -->
+            <Tab text="📜 Access Rules">
+                <VBox spacing="12" styleClass="glass-panel">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Label text="Admin Visitor Rules" styleClass="section-label" HBox.hgrow="ALWAYS"/>
+                        <Button text="Refresh" onAction="#loadRules" styleClass="button-secondary"/>
+                    </HBox>
+                    <Label text="Please check these rules before scheduling visitors to avoid rejection." styleClass="label" style="-fx-text-fill: #a1a1aa;"/>
+
+                    <TableView fx:id="rulesTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colRuleName" text="Rule Name" prefWidth="120"/>
+                            <TableColumn fx:id="colRuleCat" text="Category" prefWidth="90"/>
+                            <TableColumn fx:id="colRuleTime" text="Allowed Time" prefWidth="120"/>
+                            <TableColumn fx:id="colRuleDuration" text="Max Duration" prefWidth="90"/>
+                            <TableColumn fx:id="colRuleVisitors" text="Max Visitors/Day" prefWidth="110"/>
+                        </columns>
+                    </TableView>
                 </VBox>
             </Tab>
         </TabPane>

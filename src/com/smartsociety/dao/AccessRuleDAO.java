@@ -91,6 +91,21 @@ public class AccessRuleDAO {
         return 120; // default
     }
 
+    public boolean isDuplicateRule(AccessRule rule) {
+        String sql = "SELECT COUNT(*) FROM AccessRules WHERE rule_name = ? AND category = ? AND allowed_start_time = ? AND allowed_end_time = ? AND rule_id != ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, rule.getRuleName());
+            stmt.setString(2, rule.getCategory());
+            stmt.setTime(3, Time.valueOf(rule.getAllowedStartTime()));
+            stmt.setTime(4, Time.valueOf(rule.getAllowedEndTime()));
+            stmt.setInt(5, rule.getRuleId()); // Will be 0 for new rules, ensuring it ignores itself on updates
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) { System.err.println("[AccessRuleDAO] duplicate error: " + e.getMessage()); }
+        return false;
+    }
+
     public boolean validateRules(AccessRule rule) {
         return rule.getRuleName() != null && !rule.getRuleName().isEmpty()
                && rule.getCategory() != null && !rule.getCategory().isEmpty()

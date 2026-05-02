@@ -36,7 +36,7 @@ for %%f in ("%LIB_DIR%\*.jar") do (
 )
 
 REM Compile with classpath using the direct Java 23 path
-"%JAVA_HOME%\bin\javac" -d "%OUT_DIR%" -cp "!CP!" --module-path "%PATH_TO_FX%" --add-modules javafx.controls,javafx.fxml @sources.txt
+"%JAVA_HOME%\bin\javac" -d "%OUT_DIR%" -cp "!CP!" --module-path "%PATH_TO_FX%" --add-modules javafx.controls,javafx.fxml,javafx.swing @sources.txt
 
 if %ERRORLEVEL% neq 0 (
     echo.
@@ -56,7 +56,7 @@ echo.
 echo Running application...
 echo.
 
-"%JAVA_HOME%\bin\java" -cp "%OUT_DIR%;!CP!" --module-path "%PATH_TO_FX%" --add-modules javafx.controls,javafx.fxml com.smartsociety.Main
+"%JAVA_HOME%\bin\java" -cp "%OUT_DIR%;!CP!" --module-path "%PATH_TO_FX%" --add-modules javafx.controls,javafx.fxml,javafx.swing com.smartsociety.Main
 
 del sources.txt 2>nul
 pause

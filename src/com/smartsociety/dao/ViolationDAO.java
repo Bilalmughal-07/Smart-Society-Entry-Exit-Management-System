@@ -27,11 +27,12 @@ public class ViolationDAO {
     public List<Violation> getPendingViolations() {
         List<Violation> list = new ArrayList<>();
         String sql = "SELECT v.*, CASE WHEN el.person_type = 'VISITOR' THEN a.visitor_name ELSE u.full_name END as person_name, " +
-                     "el.category, adm.full_name as admin_name FROM Violations v " +
+                     "el.category, adm.full_name as admin_name, a.resident_id, res.full_name as resident_name FROM Violations v " +
                      "JOIN EntryLogs el ON v.log_id = el.log_id " +
                      "LEFT JOIN Approvals a ON el.approval_id = a.approval_id " +
                      "LEFT JOIN Users u ON el.person_type = 'RESIDENT' AND el.person_id = u.user_id " +
                      "LEFT JOIN Users adm ON v.action_by = adm.user_id " +
+                     "LEFT JOIN Users res ON a.resident_id = res.user_id " +
                      "WHERE v.status = 'PENDING' ORDER BY v.detected_at DESC";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -44,11 +45,12 @@ public class ViolationDAO {
     public List<Violation> getAllViolations() {
         List<Violation> list = new ArrayList<>();
         String sql = "SELECT v.*, CASE WHEN el.person_type = 'VISITOR' THEN a.visitor_name ELSE u.full_name END as person_name, " +
-                     "el.category, adm.full_name as admin_name FROM Violations v " +
+                     "el.category, adm.full_name as admin_name, a.resident_id, res.full_name as resident_name FROM Violations v " +
                      "JOIN EntryLogs el ON v.log_id = el.log_id " +
                      "LEFT JOIN Approvals a ON el.approval_id = a.approval_id " +
                      "LEFT JOIN Users u ON el.person_type = 'RESIDENT' AND el.person_id = u.user_id " +
-                     "LEFT JOIN Users adm ON v.action_by = adm.user_id ORDER BY v.detected_at DESC";
+                     "LEFT JOIN Users adm ON v.action_by = adm.user_id " +
+                     "LEFT JOIN Users res ON a.resident_id = res.user_id ORDER BY v.detected_at DESC";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
@@ -59,11 +61,12 @@ public class ViolationDAO {
 
     public Violation getViolationById(int violationId) {
         String sql = "SELECT v.*, CASE WHEN el.person_type = 'VISITOR' THEN a.visitor_name ELSE u.full_name END as person_name, " +
-                     "el.category, adm.full_name as admin_name FROM Violations v " +
+                     "el.category, adm.full_name as admin_name, a.resident_id, res.full_name as resident_name FROM Violations v " +
                      "JOIN EntryLogs el ON v.log_id = el.log_id " +
                      "LEFT JOIN Approvals a ON el.approval_id = a.approval_id " +
                      "LEFT JOIN Users u ON el.person_type = 'RESIDENT' AND el.person_id = u.user_id " +
-                     "LEFT JOIN Users adm ON v.action_by = adm.user_id WHERE v.violation_id = ?";
+                     "LEFT JOIN Users adm ON v.action_by = adm.user_id " +
+                     "LEFT JOIN Users res ON a.resident_id = res.user_id WHERE v.violation_id = ?";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, violationId);
@@ -109,6 +112,11 @@ public class ViolationDAO {
         try { v.setPersonName(rs.getString("person_name")); } catch (SQLException ignored) {}
         try { v.setCategory(rs.getString("category")); } catch (SQLException ignored) {}
         try { v.setAdminName(rs.getString("admin_name")); } catch (SQLException ignored) {}
+        try { 
+            int rId = rs.getInt("resident_id"); 
+            if (!rs.wasNull()) v.setResidentId(rId); 
+        } catch (SQLException ignored) {}
+        try { v.setResidentName(rs.getString("resident_name")); } catch (SQLException ignored) {}
         return v;
     }
 }

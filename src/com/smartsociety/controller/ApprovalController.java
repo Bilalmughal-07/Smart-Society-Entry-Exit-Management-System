@@ -8,6 +8,8 @@ import com.smartsociety.service.QRCodeService;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import com.smartsociety.model.AccessRule;
+import com.smartsociety.dao.AccessRuleDAO;
 
 /**
  * GRASP: Facade Controller for approval use cases.
@@ -40,10 +42,15 @@ public class ApprovalController {
             System.err.println("[ApprovalController] Validation failed.");
             return null;
         }
+        // Step 1.5: check if visitor is blacklisted
+        if (approvalDAO.isVisitorBlacklisted(visitorName, visitorContact)) {
+            throw new IllegalArgumentException("Visitor is blacklisted and cannot be approved.");
+        }
         // Step 2: checkVisitorAccessRules
-        if (!approvalDAO.checkVisitorAccessRules(category, visitDate, startTime, endTime)) {
-            System.err.println("[ApprovalController] Access rules violation.");
-            return null;
+        String ruleError = approvalDAO.checkVisitorAccessRules(category, visitDate, startTime, endTime);
+        if (ruleError != null) {
+            System.err.println("[ApprovalController] Access rules violation: " + ruleError);
+            throw new IllegalArgumentException(ruleError);
         }
         // Step 3: create Approval object
         Approval approval = new Approval();
@@ -143,5 +150,9 @@ public class ApprovalController {
 
     public String[][] getPendingArrivalRequests(int residentId) {
         return residentDAO.getPendingRequests(residentId);
+    }
+
+    public List<AccessRule> getActiveRules() {
+        return new AccessRuleDAO().getActiveRules();
     }
 }

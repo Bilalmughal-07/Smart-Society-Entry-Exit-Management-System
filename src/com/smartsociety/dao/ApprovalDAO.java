@@ -49,7 +49,7 @@ public class ApprovalDAO {
                && date != null && !date.isBefore(LocalDate.now());
     }
 
-    public boolean checkVisitorAccessRules(String category, LocalDate visitDate, LocalTime start, LocalTime end) {
+    public String checkVisitorAccessRules(String category, LocalDate visitDate, LocalTime start, LocalTime end) {
         String sql = "SELECT * FROM AccessRules WHERE category = ? AND is_active = 1";
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -58,10 +58,28 @@ public class ApprovalDAO {
             if (rs.next()) {
                 LocalTime ruleStart = rs.getTime("allowed_start_time").toLocalTime();
                 LocalTime ruleEnd = rs.getTime("allowed_end_time").toLocalTime();
-                return !start.isBefore(ruleStart) && !end.isAfter(ruleEnd);
+                if (start.isBefore(ruleStart) || end.isAfter(ruleEnd)) {
+                    return "Violates " + category + " rule: allowed between " + ruleStart + " and " + ruleEnd;
+                }
+                return null; // Valid
             }
-            return true;
-        } catch (SQLException e) { return true; }
+            return null; // No rule exists for this category
+        } catch (SQLException e) { return "Database error checking rules."; }
+    }
+
+    public boolean isVisitorBlacklisted(String name, String contact) {
+        String sql = "SELECT COUNT(*) FROM Violations v " +
+                     "JOIN EntryLogs el ON v.log_id = el.log_id " +
+                     "LEFT JOIN Approvals a ON el.approval_id = a.approval_id " +
+                     "WHERE a.visitor_name = ? AND a.visitor_contact = ? AND v.action_taken = 'BLACKLIST'";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setString(2, contact);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) { System.err.println("[ApprovalDAO] Blacklist check error: " + e.getMessage()); }
+        return false;
     }
 
     public List<Approval> getApprovalsByResident(int residentId) {
