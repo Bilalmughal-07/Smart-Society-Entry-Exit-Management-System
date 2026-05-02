@@ -6,7 +6,8 @@ echo  Compile and Run Script
 echo ============================================
 
 REM --- Configuration ---
-SET JAVA_HOME=C:\Program Files\Java\jdk-23
+REM Updated to use your new java-resources folder name!
+SET JAVA_HOME=C:\jdk-23
 SET PATH_TO_FX=C:\javafx-sdk-21.0.11\lib
 
 SET SRC_DIR=src
@@ -40,7 +41,7 @@ REM Compile with classpath using the direct Java 23 path
 
 if %ERRORLEVEL% neq 0 (
     echo.
-    echo ❌ Compilation failed! Check errors above.
+    echo Compilation failed! Check errors above.
     pause
     exit /b 1
 )
@@ -51,7 +52,7 @@ if exist "%RES_DIR%" (
 )
 
 echo.
-echo ✅ Compilation successful!
+echo Compilation successful!
 echo.
 echo Running application...
 echo.

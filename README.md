@@ -46,8 +46,8 @@ A full-featured Java desktop application for managing residential society gate e
 
 ## 🛠️ Prerequisites
 
-1. **Java JDK 17+** — [Download](https://adoptium.net/)
-2. **JavaFX SDK 21+** — [Download](https://openjfx.io/)
+1. **Java JDK 23.0.1** — [Download](https://adoptium.net/)
+2. **JavaFX SDK 21.0.11** — [Download](https://openjfx.io/)
 3. **MS SQL Server** — [Download Express](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
 4. **SQL Server Management Studio (SSMS)** — [Download](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
 
