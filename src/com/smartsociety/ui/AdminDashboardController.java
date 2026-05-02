@@ -43,6 +43,27 @@ public class AdminDashboardController {
     private final AdminController adminCtrl = new AdminController();
     private UserSession session;
 
+    public static final class PreloadData {
+        private final List<AccessRule> rules;
+        private final List<EntryLog> entries;
+        private final List<EntryLog> overstays;
+        private final List<Violation> violations;
+
+        public PreloadData(List<AccessRule> rules, List<EntryLog> entries,
+                           List<EntryLog> overstays, List<Violation> violations) {
+            this.rules = rules;
+            this.entries = entries;
+            this.overstays = overstays;
+            this.violations = violations;
+        }
+    }
+
+    private static PreloadData preloadCache;
+
+    public static void setPreloadedData(PreloadData data) {
+        preloadCache = data;
+    }
+
 
     @FXML
     public void initialize() {
@@ -99,14 +120,28 @@ public class AdminDashboardController {
         DashboardUiUtils.useConstrainedTableColumns(rulesTable, occupancyTable, violationsTable);
         DashboardUiUtils.initializeSidebar(new Button[] { navBtn0, navBtn1, navBtn2 }, currentSection);
 
-        loadRules();
-        loadOccupancy();
-        loadViolations();
+        PreloadData preload = preloadCache;
+        preloadCache = null;
+        if (preload != null) {
+            applyPreloadedData(preload);
+        } else {
+            loadRules();
+            loadOccupancy();
+            loadViolations();
+        }
 
         AnimationUtils.installAmbientMotion(ambientLayer);
         Button[] animatedButtons = { navBtn0, navBtn1, navBtn2 };
         for (Button button : animatedButtons) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
+    }
+
+    private void applyPreloadedData(PreloadData preload) {
+        rulesTable.setItems(FXCollections.observableArrayList(preload.rules));
+        occupancyTable.setItems(FXCollections.observableArrayList(preload.entries));
+        occupancyCount.setText(String.valueOf(preload.entries.size()));
+        overstayCount.setText(String.valueOf(preload.overstays.size()));
+        violationsTable.setItems(FXCollections.observableArrayList(preload.violations));
     }
 
     // === Sidebar Navigation ===

@@ -117,6 +117,17 @@
     -fx-text-fill: rgba(255,255,255,0.25);
 }
 
+.loading-overlay {
+    -fx-background-color: rgba(10, 14, 18, 0.55);
+}
+
+.loading-dots {
+    -fx-text-fill: rgba(255,255,255,0.90);
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+    -fx-letter-spacing: 2px;
+}
+
 /* Sidebar */
 .sidebar {
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(255,255,255,0.18), rgba(255,255,255,0.055));

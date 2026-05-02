@@ -60,6 +60,27 @@ public class ResidentDashboardController {
     private UserSession session;
     private int pendingArrivalRequestId = -1;
 
+    public static final class PreloadData {
+        private final List<Approval> approvals;
+        private final String[][] requests;
+        private final List<String[]> notifications;
+        private final List<AccessRule> rules;
+
+        public PreloadData(List<Approval> approvals, String[][] requests,
+                           List<String[]> notifications, List<AccessRule> rules) {
+            this.approvals = approvals;
+            this.requests = requests;
+            this.notifications = notifications;
+            this.rules = rules;
+        }
+    }
+
+    private static PreloadData preloadCache;
+
+    public static void setPreloadedData(PreloadData data) {
+        preloadCache = data;
+    }
+
 
     @FXML
     public void initialize() {
@@ -91,10 +112,16 @@ public class ResidentDashboardController {
         colRuleDuration.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getMaxDurationMinutes() + " min"));
         colRuleVisitors.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(String.valueOf(cd.getValue().getMaxVisitorsPerDay())));
 
-        loadApprovals();
-        loadArrivalRequests();
-        loadNotifications();
-        loadRules();
+        PreloadData preload = preloadCache;
+        preloadCache = null;
+        if (preload != null) {
+            applyPreloadedData(preload);
+        } else {
+            loadApprovals();
+            loadArrivalRequests();
+            loadNotifications();
+            loadRules();
+        }
 
         DashboardUiUtils.useConstrainedTableColumns(approvalsTable, arrivalRequestsTable, rulesTable);
         DashboardUiUtils.initializeSidebar(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4 }, currentSection);
@@ -121,6 +148,16 @@ public class ResidentDashboardController {
         Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4, notifBadge };
         for (Button button : animatedButtons) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
+    }
+
+    private void applyPreloadedData(PreloadData preload) {
+        approvalsTable.setItems(FXCollections.observableArrayList(preload.approvals));
+        arrivalRequestsTable.setItems(FXCollections.observableArrayList(preload.requests));
+        ObservableList<String> items = FXCollections.observableArrayList();
+        for (String[] n : preload.notifications) items.add("[" + n[2] + "] " + n[1] + "  (" + n[3] + ")");
+        notificationsList.setItems(items);
+        notifBadge.setText("🔔 " + preload.notifications.size());
+        rulesTable.setItems(FXCollections.observableArrayList(preload.rules));
     }
 
     // === Sidebar Navigation ===

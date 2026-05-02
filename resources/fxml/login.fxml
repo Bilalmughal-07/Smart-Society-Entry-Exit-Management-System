@@ -62,4 +62,11 @@
             </StackPane>
         </VBox>
     </VBox>
+
+    <StackPane fx:id="loadingOverlay" visible="false" managed="false" styleClass="loading-overlay">
+        <VBox alignment="CENTER" spacing="10">
+            <Label text="Loading dashboard" styleClass="subtitle-label"/>
+            <Label fx:id="loadingDots" text="..." styleClass="loading-dots"/>
+        </VBox>
+    </StackPane>
 </StackPane>
