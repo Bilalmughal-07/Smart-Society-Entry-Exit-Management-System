@@ -4,8 +4,10 @@ import com.smartsociety.controller.LoginController;
 import com.smartsociety.model.UserSession;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -16,14 +18,16 @@ public class LoginUIController {
     @FXML private Label statusLabel;
     @FXML private Button loginButton;
     @FXML private VBox loginCard;
+    @FXML private Pane ambientLayer;
 
     private final LoginController loginController = new LoginController();
 
     @FXML
     public void initialize() {
         passwordField.setOnAction(e -> handleLogin());
+        AnimationUtils.installAmbientMotion(ambientLayer);
         AnimationUtils.introAnimation(loginCard);
-        AnimationUtils.addHoverScale(loginButton);
+        AnimationUtils.addHoverLift(loginButton);
     }
 
     @FXML
@@ -76,6 +80,7 @@ public class LoginUIController {
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource(fp));
                     Scene scene = new Scene(loader.load(), 1100, 700);
+                    scene.setCamera(new PerspectiveCamera());
                     scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
                     stage.setTitle("Smart Society - " + t);
                     stage.setScene(scene);

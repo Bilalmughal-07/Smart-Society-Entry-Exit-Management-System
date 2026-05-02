@@ -10,10 +10,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
@@ -48,6 +50,7 @@ public class ResidentDashboardController {
     @FXML private ScrollPane section0;
     @FXML private VBox section1, section2, section3, section4;
     @FXML private Button navBtn0, navBtn1, navBtn2, navBtn3, navBtn4;
+    @FXML private Pane ambientLayer;
     private int currentSection = 0;
 
     private final ApprovalController approvalCtrl = new ApprovalController();
@@ -106,6 +109,9 @@ public class ResidentDashboardController {
             }
         });
 
+        AnimationUtils.installAmbientMotion(ambientLayer);
+        Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, navBtn4, notifBadge };
+        for (Button button : animatedButtons) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
     }
 
@@ -278,7 +284,8 @@ public class ResidentDashboardController {
             try {
                 new LoginController().logout();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-                Scene scene = new Scene(loader.load(), 500, 600);
+                Scene scene = new Scene(loader.load(), 560, 660);
+                scene.setCamera(new PerspectiveCamera());
                 scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
                 stage.setTitle("Smart Society - Login");
                 stage.setScene(scene);

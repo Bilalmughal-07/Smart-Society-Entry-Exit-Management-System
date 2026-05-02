@@ -3,9 +3,21 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.AdminDashboardController"
-            styleClass="root">
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.AdminDashboardController"
+           styleClass="root liquid-root dashboard-root">
+
+    <Pane fx:id="ambientLayer" mouseTransparent="true" styleClass="ambient-layer">
+        <Circle radius="220" centerX="170" centerY="130" styleClass="ambient-orb ambient-orb-a"/>
+        <Circle radius="260" centerX="1030" centerY="640" styleClass="ambient-orb ambient-orb-b"/>
+        <Rectangle width="360" height="150" x="675" y="40" arcWidth="88" arcHeight="88"
+                   rotate="-12" styleClass="ambient-slab ambient-slab-a"/>
+        <Rectangle width="300" height="120" x="-65" y="535" arcWidth="78" arcHeight="78"
+                   rotate="20" styleClass="ambient-slab ambient-slab-b"/>
+    </Pane>
+
+    <BorderPane styleClass="app-shell">
 
     <!-- ═══ Sidebar ═══ -->
     <left>
@@ -157,4 +169,5 @@
 
         </StackPane>
     </center>
-</BorderPane>
+    </BorderPane>
+</StackPane>

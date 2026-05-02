@@ -3,6 +3,8 @@ package com.smartsociety.ui;
 import javafx.animation.*;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
+import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
 public class AnimationUtils {
@@ -63,6 +65,8 @@ public class AnimationUtils {
     public static void introAnimation(Node node) {
         node.setOpacity(0);
         node.setTranslateY(18);
+        node.setScaleX(0.985);
+        node.setScaleY(0.985);
         FadeTransition fi = new FadeTransition(Duration.millis(480), node);
         fi.setFromValue(0.0);
         fi.setToValue(1.0);
@@ -71,7 +75,13 @@ public class AnimationUtils {
         si.setFromY(18);
         si.setToY(0);
         si.setInterpolator(Interpolator.EASE_OUT);
-        new ParallelTransition(fi, si).play();
+        ScaleTransition sc = new ScaleTransition(Duration.millis(520), node);
+        sc.setFromX(0.985);
+        sc.setFromY(0.985);
+        sc.setToX(1.0);
+        sc.setToY(1.0);
+        sc.setInterpolator(Interpolator.EASE_OUT);
+        new ParallelTransition(fi, si, sc).play();
     }
 
     public static void sceneTransition(Node currentRoot, Runnable loadNewScene) {
@@ -96,6 +106,74 @@ public class AnimationUtils {
             s.setInterpolator(Interpolator.EASE_OUT);
             s.play();
         });
+    }
+
+    public static void addHoverLift(Node node) {
+        node.setRotationAxis(Rotate.Y_AXIS);
+        node.setOnMouseEntered(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(160), node);
+            scale.setToX(1.025);
+            scale.setToY(1.025);
+            scale.setInterpolator(Interpolator.EASE_OUT);
+
+            TranslateTransition lift = new TranslateTransition(Duration.millis(160), node);
+            lift.setToY(-4);
+            lift.setInterpolator(Interpolator.EASE_OUT);
+
+            RotateTransition tilt = new RotateTransition(Duration.millis(160), node);
+            tilt.setToAngle(-2.5);
+            tilt.setInterpolator(Interpolator.EASE_OUT);
+
+            new ParallelTransition(scale, lift, tilt).play();
+        });
+        node.setOnMouseExited(e -> {
+            ScaleTransition scale = new ScaleTransition(Duration.millis(180), node);
+            scale.setToX(1.0);
+            scale.setToY(1.0);
+            scale.setInterpolator(Interpolator.EASE_OUT);
+
+            TranslateTransition lift = new TranslateTransition(Duration.millis(180), node);
+            lift.setToY(0);
+            lift.setInterpolator(Interpolator.EASE_OUT);
+
+            RotateTransition tilt = new RotateTransition(Duration.millis(180), node);
+            tilt.setToAngle(0);
+            tilt.setInterpolator(Interpolator.EASE_OUT);
+
+            new ParallelTransition(scale, lift, tilt).play();
+        });
+    }
+
+    public static void installAmbientMotion(Pane layer) {
+        if (layer == null) return;
+        int index = 0;
+        for (Node node : layer.getChildren()) {
+            node.setMouseTransparent(true);
+            node.setManaged(false);
+
+            TranslateTransition drift = new TranslateTransition(Duration.seconds(9 + index * 2), node);
+            drift.setByX(index % 2 == 0 ? 34 : -28);
+            drift.setByY(index % 2 == 0 ? -22 : 26);
+            drift.setAutoReverse(true);
+            drift.setCycleCount(Animation.INDEFINITE);
+            drift.setInterpolator(Interpolator.EASE_BOTH);
+
+            ScaleTransition breathe = new ScaleTransition(Duration.seconds(7 + index), node);
+            breathe.setToX(1.08);
+            breathe.setToY(1.08);
+            breathe.setAutoReverse(true);
+            breathe.setCycleCount(Animation.INDEFINITE);
+            breathe.setInterpolator(Interpolator.EASE_BOTH);
+
+            RotateTransition rotate = new RotateTransition(Duration.seconds(20 + index * 3), node);
+            rotate.setByAngle(index % 2 == 0 ? 9 : -11);
+            rotate.setAutoReverse(true);
+            rotate.setCycleCount(Animation.INDEFINITE);
+            rotate.setInterpolator(Interpolator.EASE_BOTH);
+
+            new ParallelTransition(drift, breathe, rotate).play();
+            index++;
+        }
     }
 
     public static void shakeNode(Node node) {

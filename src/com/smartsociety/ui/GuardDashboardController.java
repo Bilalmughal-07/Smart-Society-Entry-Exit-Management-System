@@ -9,11 +9,13 @@ import com.smartsociety.service.QRCodeService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.concurrent.Task;
@@ -47,6 +49,7 @@ public class GuardDashboardController {
     // Sidebar nav
     @FXML private VBox section0, section1, section2, section3;
     @FXML private Button navBtn0, navBtn1, navBtn2, navBtn3;
+    @FXML private Pane ambientLayer;
     private int currentSection = 0;
 
     private Task<String> webcamTask;
@@ -91,6 +94,9 @@ public class GuardDashboardController {
         updateOccupancy();
         handleEnterManually();
 
+        AnimationUtils.installAmbientMotion(ambientLayer);
+        Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, registerEntryBtn, reportViolationBtn, retryBtn };
+        for (Button button : animatedButtons) if (button != null) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
     }
 
@@ -351,7 +357,8 @@ public class GuardDashboardController {
             try {
                 new LoginController().logout();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-                Scene scene = new Scene(loader.load(), 500, 600);
+                Scene scene = new Scene(loader.load(), 560, 660);
+                scene.setCamera(new PerspectiveCamera());
                 scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
                 stage.setTitle("Smart Society - Login");
                 stage.setScene(scene);

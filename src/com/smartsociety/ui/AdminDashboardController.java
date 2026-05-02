@@ -6,8 +6,10 @@ import com.smartsociety.model.*;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.time.LocalTime;
@@ -32,6 +34,7 @@ public class AdminDashboardController {
     // Sidebar nav
     @FXML private VBox section0, section1, section2;
     @FXML private Button navBtn0, navBtn1, navBtn2;
+    @FXML private Pane ambientLayer;
     private int currentSection = 0;
 
     private final AdminController adminCtrl = new AdminController();
@@ -93,6 +96,9 @@ public class AdminDashboardController {
         loadOccupancy();
         loadViolations();
 
+        AnimationUtils.installAmbientMotion(ambientLayer);
+        Button[] animatedButtons = { navBtn0, navBtn1, navBtn2 };
+        for (Button button : animatedButtons) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
     }
 
@@ -227,7 +233,8 @@ public class AdminDashboardController {
             try {
                 new LoginController().logout();
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-                Scene scene = new Scene(loader.load(), 500, 600);
+                Scene scene = new Scene(loader.load(), 560, 660);
+                scene.setCamera(new PerspectiveCamera());
                 scene.getStylesheets().add(getClass().getResource("/css/glassmorphism.css").toExternalForm());
                 stage.setTitle("Smart Society - Login");
                 stage.setScene(scene);

@@ -3,27 +3,34 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.LoginUIController"
-           prefWidth="480" prefHeight="580" styleClass="root">
+           fx:id="appRoot" prefWidth="560" prefHeight="660" styleClass="root liquid-root">
 
-    <VBox alignment="CENTER" maxWidth="360">
+    <Pane fx:id="ambientLayer" mouseTransparent="true" styleClass="ambient-layer">
+        <Circle radius="150" centerX="70" centerY="90" styleClass="ambient-orb ambient-orb-a"/>
+        <Circle radius="190" centerX="505" centerY="560" styleClass="ambient-orb ambient-orb-b"/>
+        <Rectangle width="270" height="120" x="320" y="84" arcWidth="70" arcHeight="70"
+                   rotate="-14" styleClass="ambient-slab ambient-slab-a"/>
+        <Rectangle width="210" height="90" x="-38" y="465" arcWidth="60" arcHeight="60"
+                   rotate="18" styleClass="ambient-slab ambient-slab-b"/>
+    </Pane>
+
+    <VBox alignment="CENTER" maxWidth="410">
         <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
 
-        <VBox fx:id="loginCard" styleClass="login-card" spacing="18">
-
-            <!-- App icon + branding -->
-            <VBox alignment="CENTER" spacing="10">
-                <StackPane styleClass="avatar-circle" prefWidth="56" prefHeight="56" alignment="CENTER">
-                    <Label text="🏠" style="-fx-font-size: 26px;"/>
+        <VBox fx:id="loginCard" styleClass="login-card glass-hero-card" spacing="20">
+            <VBox alignment="CENTER" spacing="12">
+                <StackPane styleClass="avatar-circle large-avatar" prefWidth="74" prefHeight="74" alignment="CENTER">
+                    <Label text="SS" styleClass="avatar-label"/>
                 </StackPane>
-                <Label text="Smart Society" styleClass="title-label"/>
-                <Label text="Entry Management System" styleClass="subtitle-label"/>
+                <Label text="Smart Society" styleClass="hero-title"/>
+                <Label text="Entry Management System" styleClass="subtitle-label hero-subtitle"/>
             </VBox>
 
             <Separator/>
 
-            <!-- Form fields -->
             <VBox spacing="12">
                 <Label text="USERNAME" styleClass="field-label"/>
                 <TextField fx:id="usernameField" promptText="Enter your username"/>
@@ -32,18 +39,14 @@
                 <PasswordField fx:id="passwordField" promptText="Enter your password"/>
             </VBox>
 
-            <!-- Status -->
             <Label fx:id="statusLabel" text="" wrapText="true"/>
 
-            <!-- Sign In -->
             <Button fx:id="loginButton" text="Sign In" onAction="#handleLogin"
-                    maxWidth="Infinity" prefHeight="44"/>
+                    maxWidth="Infinity" prefHeight="48"/>
 
-            <!-- Hint -->
             <VBox alignment="CENTER" spacing="3">
-                <Label text="Default credentials" style="-fx-text-fill: rgba(255,255,255,0.22); -fx-font-size: 11px;"/>
-                <Label text="admin / guard1 / resident1  •  password123"
-                       style="-fx-text-fill: rgba(255,255,255,0.16); -fx-font-size: 11px;"/>
+                <Label text="Default credentials" styleClass="muted-caption"/>
+                <Label text="admin / guard1 / resident1  -  password123" styleClass="muted-caption faint-caption"/>
             </VBox>
         </VBox>
     </VBox>
