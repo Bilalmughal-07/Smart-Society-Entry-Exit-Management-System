@@ -65,6 +65,29 @@ public class GuardDashboardController {
     private String verifiedQrData = null;
     private String verifiedQrType = null;
 
+    public static final class PreloadData {
+        private final List<User> residents;
+        private final List<EntryLog> entries;
+        private final List<Approval> approvals;
+        private final List<String[]> notifications;
+        private final int occupancyCount;
+
+        public PreloadData(List<User> residents, List<EntryLog> entries, List<Approval> approvals,
+                           List<String[]> notifications, int occupancyCount) {
+            this.residents = residents;
+            this.entries = entries;
+            this.approvals = approvals;
+            this.notifications = notifications;
+            this.occupancyCount = occupancyCount;
+        }
+    }
+
+    private static PreloadData preloadCache;
+
+    public static void setPreloadedData(PreloadData data) {
+        preloadCache = data;
+    }
+
     @FXML
     public void initialize() {
         session = LoginController.getCurrentSession();
@@ -88,11 +111,17 @@ public class GuardDashboardController {
         colTTime.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getTimeWindow()));
         colTStatus.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getStatusString()));
 
-        loadResidents();
-        loadActiveEntries();
-        loadTodayApprovals();
-        loadGuardAlerts();
-        updateOccupancy();
+        PreloadData preload = preloadCache;
+        preloadCache = null;
+        if (preload != null) {
+            applyPreloadedData(preload);
+        } else {
+            loadResidents();
+            loadActiveEntries();
+            loadTodayApprovals();
+            loadGuardAlerts();
+            updateOccupancy();
+        }
         handleEnterManually();
 
         DashboardUiUtils.useConstrainedTableColumns(activeEntriesTable, todayApprovalsTable);
@@ -102,6 +131,45 @@ public class GuardDashboardController {
         Button[] animatedButtons = { navBtn0, navBtn1, navBtn2, navBtn3, registerEntryBtn, reportViolationBtn, retryBtn };
         for (Button button : animatedButtons) if (button != null) AnimationUtils.addHoverLift(button);
         AnimationUtils.introAnimation(section0);
+    }
+
+    private void applyPreloadedData(PreloadData preload) {
+        residentCombo.getItems().clear();
+        for (User r : preload.residents) {
+            residentCombo.getItems().add(r.getUserId() + " - " + r.getFullName() + " (" + r.getUnitNumber() + ")");
+        }
+        activeEntriesTable.setItems(FXCollections.observableArrayList(preload.entries));
+        todayApprovalsTable.setItems(FXCollections.observableArrayList(preload.approvals));
+        javafx.collections.ObservableList<String> items = FXCollections.observableArrayList();
+        for (String[] notification : preload.notifications) {
+            if (notification.length > 2 && "GUARD_ALERT".equals(notification[2])
+                    && notification[1].startsWith("Arrival request")) {
+                items.add(notification[1] + "  (" + notification[3] + ")");
+            }
+        }
+        guardAlertsList.setItems(items);
+        guardAlertsList.setPlaceholder(new Label("No new resident responses."));
+        occupancyLabel.setText("Occupancy: " + preload.occupancyCount);
+    }
+
+    // === Sidebar Navigation ===
+
+    @FXML private void showSection0() { showSection(0); }
+    @FXML private void showSection1() { showSection(1); }
+    @FXML private void showSection2() { showSection(2); }
+    @FXML private void showSection3() { showSection(3); }
+
+    private void showSection(int index) {
+        if (index == currentSection) return;
+        VBox[] sections = { section0, section1, section2, section3 };
+        AnimationUtils.switchSection(sections[currentSection], sections[index],
+                index > currentSection ? 1 : -1);
+        activateNav(index);
+        currentSection = index;
+    }
+
+    private void activateNav(int index) {
+        DashboardUiUtils.activateSidebarButton(new Button[] { navBtn0, navBtn1, navBtn2, navBtn3 }, index);
     }
 
     @FXML
