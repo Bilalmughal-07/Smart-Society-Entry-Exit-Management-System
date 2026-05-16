@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartsociety.ui.AdminDashboardController"
+           styleClass="root liquid-root dashboard-root">
+
+    <Pane fx:id="ambientLayer" mouseTransparent="true" styleClass="ambient-layer">
+        <effect>
+            <GaussianBlur radius="3.2"/>
+        </effect>
+        <Circle radius="220" centerX="170" centerY="130" styleClass="ambient-orb ambient-orb-a"/>
+        <Circle radius="260" centerX="1030" centerY="640" styleClass="ambient-orb ambient-orb-b"/>
+        <Rectangle width="360" height="150" x="675" y="40" arcWidth="88" arcHeight="88"
+                   rotate="-12" styleClass="ambient-slab ambient-slab-a"/>
+        <Rectangle width="300" height="120" x="-65" y="535" arcWidth="78" arcHeight="78"
+                   rotate="20" styleClass="ambient-slab ambient-slab-b"/>
+    </Pane>
+    <Pane mouseTransparent="true" styleClass="ambient-frost"/>
+
+    <BorderPane styleClass="app-shell">
+
+    <!-- ═══ Sidebar ═══ -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="220" minWidth="200">
+
+            <!-- User area -->
+            <VBox styleClass="sidebar-user">
+                <StackPane styleClass="avatar-circle" prefWidth="48" prefHeight="48" alignment="CENTER">
+                    <Label fx:id="avatarLabel" text="A" styleClass="avatar-label"/>
+                </StackPane>
+                <Label fx:id="welcomeLabel" text="" styleClass="sidebar-username"/>
+                <Label text="Administrator" styleClass="sidebar-role"/>
+            </VBox>
+
+            <!-- Navigation -->
+            <VBox styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+                <Button fx:id="navBtn0" text="📏  Access Rules" onAction="#showSection0"
+                        styleClass="sidebar-item sidebar-item-active" maxWidth="Infinity"/>
+                <Button fx:id="navBtn1" text="📊  Occupancy" onAction="#showSection1"
+                        styleClass="sidebar-item" maxWidth="Infinity"/>
+                <Button fx:id="navBtn2" text="⚠  Violations" onAction="#showSection2"
+                        styleClass="sidebar-item" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Sign Out -->
+            <VBox styleClass="sidebar-footer">
+                <Button text="Sign Out" onAction="#handleLogout" styleClass="sidebar-logout" maxWidth="Infinity"/>
+                <Button text="Exit App" onAction="#handleExitApp" styleClass="sidebar-logout sidebar-exit" maxWidth="Infinity"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- ═══ Content Area ═══ -->
+    <center>
+        <StackPane styleClass="content-area">
+
+            <!-- Section 0: Access Rules (UC-12) -->
+            <VBox fx:id="section0" spacing="16" visible="true" managed="true" maxWidth="Infinity" maxHeight="Infinity">
+                <Label text="Visitor Access Rules" styleClass="section-label"/>
+
+                <TableView fx:id="rulesTable" prefHeight="200" maxWidth="Infinity">
+                    <columns>
+                        <TableColumn fx:id="colRuleName" text="Rule Name" prefWidth="130"/>
+                        <TableColumn fx:id="colRuleCat" text="Category" prefWidth="80"/>
+                        <TableColumn fx:id="colRuleTime" text="Allowed Time" prefWidth="110"/>
+                        <TableColumn fx:id="colRuleDuration" text="Max Duration" prefWidth="90"/>
+                        <TableColumn fx:id="colRuleVisitors" text="Max/Day" prefWidth="70"/>
+                        <TableColumn fx:id="colRuleActive" text="Active" prefWidth="60"/>
+                    </columns>
+                </TableView>
+
+                <Separator/>
+                <Label text="Add / Edit Rule" styleClass="subtitle-label"/>
+
+                <HBox spacing="12">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="RULE NAME" styleClass="field-label"/>
+                        <TextField fx:id="ruleNameField" promptText="Rule name"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="CATEGORY" styleClass="field-label"/>
+                        <ComboBox fx:id="ruleCategoryCombo" maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+                <HBox spacing="12">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="START TIME" styleClass="field-label"/>
+                        <TextField fx:id="ruleStartField" promptText="HH:MM"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="END TIME" styleClass="field-label"/>
+                        <TextField fx:id="ruleEndField" promptText="HH:MM"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="MAX DURATION (MIN)" styleClass="field-label"/>
+                        <TextField fx:id="ruleMaxDuration" promptText="120"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="MAX VISITORS/DAY" styleClass="field-label"/>
+                        <TextField fx:id="ruleMaxVisitors" promptText="10"/>
+                    </VBox>
+                </HBox>
+
+                <Label fx:id="ruleStatusLabel" text=""/>
+                <HBox spacing="10">
+                    <Button text="Save Rule" onAction="#handleSaveRule" styleClass="button-success"/>
+                    <Button text="Delete Selected" onAction="#handleDeleteRule" styleClass="button-danger"/>
+                    <Button text="Refresh" onAction="#loadRules" styleClass="button-secondary"/>
+                </HBox>
+            </VBox>
+
+            <!-- Section 1: Occupancy (UC-13) -->
+            <VBox fx:id="section1" spacing="16" visible="false" managed="false" maxWidth="Infinity" maxHeight="Infinity">
+                <Label text="Current Occupancy" styleClass="section-label"/>
+
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <VBox alignment="CENTER" styleClass="glass-panel-light" prefWidth="140">
+                        <Label fx:id="occupancyCount" text="0" styleClass="stat-value"/>
+                        <Label text="OCCUPANTS" styleClass="stat-label"/>
+                    </VBox>
+                    <VBox alignment="CENTER" styleClass="glass-panel-light" prefWidth="140">
+                        <Label fx:id="overstayCount" text="0"
+                               style="-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #FF453A;"/>
+                        <Label text="OVERSTAYS" styleClass="stat-label"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Refresh" onAction="#loadOccupancy" styleClass="button-secondary"/>
+                    <Button text="Auto-Detect Violations" onAction="#handleAutoDetect" styleClass="button-warning"/>
+                </HBox>
+
+                <TableView fx:id="occupancyTable" VBox.vgrow="ALWAYS" maxWidth="Infinity">
+                    <columns>
+                        <TableColumn fx:id="colOccName" text="Name" prefWidth="130"/>
+                        <TableColumn fx:id="colOccType" text="Type" prefWidth="70"/>
+                        <TableColumn fx:id="colOccCategory" text="Category" prefWidth="80"/>
+                        <TableColumn fx:id="colOccEntry" text="Entry Time" prefWidth="140"/>
+                        <TableColumn fx:id="colOccDuration" text="Duration" prefWidth="80"/>
+                        <TableColumn fx:id="colOccUnit" text="Unit" prefWidth="60"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Section 2: Violations (UC-14) -->
+            <VBox fx:id="section2" spacing="16" visible="false" managed="false" maxWidth="Infinity" maxHeight="Infinity">
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="Violation Reports" styleClass="section-label" HBox.hgrow="ALWAYS"/>
+                    <Button text="Refresh" onAction="#loadViolations" styleClass="button-secondary"/>
+                </HBox>
+
+                <TableView fx:id="violationsTable" VBox.vgrow="ALWAYS" maxWidth="Infinity">
+                    <columns>
+                        <TableColumn fx:id="colViolId" text="ID" prefWidth="50"/>
+                        <TableColumn fx:id="colViolType" text="Type" prefWidth="100"/>
+                        <TableColumn fx:id="colViolPerson" text="Person" prefWidth="120"/>
+                        <TableColumn fx:id="colViolResidentId" text="Resident ID" prefWidth="80"/>
+                        <TableColumn fx:id="colViolResidentName" text="Host Resident" prefWidth="120"/>
+                        <TableColumn fx:id="colViolDesc" text="Description" prefWidth="200"/>
+                        <TableColumn fx:id="colViolStatus" text="Status" prefWidth="80"/>
+                        <TableColumn fx:id="colViolAction" text="Action" prefWidth="80"/>
+                        <TableColumn fx:id="colViolDate" text="Detected" prefWidth="130"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10">
+                    <Button text="Issue Warning" onAction="#handleWarning" styleClass="button-warning"/>
+                    <Button text="Blacklist" onAction="#handleBlacklist" styleClass="button-danger"/>
+                    <Button text="Resolve" onAction="#handleResolve" styleClass="button-success"/>
+                </HBox>
+            </VBox>
+
+        </StackPane>
+    </center>
+    </BorderPane>
+</StackPane>

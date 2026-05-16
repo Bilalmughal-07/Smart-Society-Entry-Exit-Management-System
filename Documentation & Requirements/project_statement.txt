@@ -1,0 +1,23 @@
+Requirements
+
+1.  Use Cases: Each group member must implement three use cases for their chosen projects. Of the three, at least two must be unique operation use cases specific to your project and not a simple Create, Read, Update, Delete (CRUD) operation. All "Manage" use cases are considered a single use case, not four separate ones.
+
+2.  Business Logic: The application's business logic must be written in Java. The business logic layer or application layer should follow the OOP principles studied. You will be asked during the evaluation about their usage in the project. Correct use of OOP principles will be highly encouraged. Both the business logic and UI layer must be connected. The consistency between design and implementation will be evaluated strictly. For example, classes, attributes, and functions mentioned in the designed artifacts must be implemented as they are. The use of appropriate design patterns (such as GRASP and GOF) that fit your project is important; justification, too, is necessary.
+
+3.  Database: A database must be used to store and manage data for the application. A database layer must be present in your project. This phase requires a specific persistence handler. For example, any DBMS (i.e., Oracle, MySQL, SQL Server). All three layers, such as UI, business logic, and DB, must be connected.
+
+4.  User Interface: The application's user interface is preferably developed using JavaFX. However, you may use any front-end technology that you are comfortable with. A functional user interface (in JavaFX or a technology of your preference) containing elements corresponding to each use case is required for your project.
+
+5. Architectural Style: An architectural style (from the ones studied) must be chosen for the application. Proper justification should be given for why you selected a certain style.
+
+Deliverable:
+
+1. Code: Working code (properly commented and indented) and all relevant files (properly named) should be submitted along with the report.  Need to integrate all code into one. Showing each functionality separately on different laptops is not allowed. You are making one system.
+
+
+
+Submission Guidelines:
+      -  Readme files with instructions on how to execute the project.
+
+Guidelines:
+      - No Java frameworks are allowed. ZERO in case of use.
